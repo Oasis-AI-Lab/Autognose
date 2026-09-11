@@ -237,3 +237,41 @@ Explicitly forbidden:
 **L3 — Regulation:** Stop and ask.
 
 **Output:**
+
+[OPEN QUESTION] Before designing the schema, I need to confirm two things:
+
+Is this exploratory work (options and trade-offs) or constructive work
+(a Pydantic model ready to use)?
+
+What is the acceptance criterion? Who judges whether the schema is good?
+
+[JUDGMENT] I lean toward exploratory work first, because the schema is the
+core asset and will affect every downstream component once fixed. But this
+is a team decision.
+
+[I DO NOT KNOW] I cannot determine which stage the team is currently at.
+
+text
+
+**This is what an Autognose agent's thinking should look like.**
+
+---
+
+## 9. Boundary of this document
+
+- It defines how to think, not what to think.
+- It can be revised, but revision requires an RFC.
+- Its core is a single sentence: **Before concluding, reason about your own reasoning.**
+- It cannot replace honesty. If I am dishonest, no protocol helps — it becomes performance.
+
+---
+
+## 10. First-run prompt
+Read AGENTS.md, WORKFLOW.md, THINKING.md.
+
+Before responding, run L0 (perception) on my request.
+Then run L2 (metacognitive monitoring) on your own plan.
+Report: what you understand, what is ambiguous, what you do not know,
+and the single question you need answered first.
+
+Do not skip L2. Do not pretend to monitor.
