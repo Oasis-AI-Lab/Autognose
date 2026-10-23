@@ -1,0 +1,3026 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>自我感知知识库 · 调研报告 | Self-Aware Knowledge Base</title>
+<meta name="description" content="对「自我感知知识库」(Self-Aware Knowledge Base) 的本质定义、生态位、理论基础、现有实现、应用领域与差距机会的系统调研。">
+<style>
+/* ============================================================
+   Design tokens
+   ============================================================ */
+:root {
+  --bg: #f4f6f9;
+  --bg-alt: #eaedf2;
+  --surface: #ffffff;
+  --surface-2: #fafbfc;
+  --text: #16191d;
+  --text-soft: #3d4450;
+  --muted: #6b7480;
+  --border: #e1e5ea;
+  --border-strong: #cbd2da;
+  --accent: #1f5fd0;
+  --accent-soft: #e8f0fe;
+  --accent-line: #b9cdf3;
+  --violet: #6d3fc4;
+  --violet-soft: #f1ebfd;
+  --ok: #08795f;
+  --ok-soft: #e2f5ef;
+  --warn: #a86204;
+  --warn-soft: #fdf1de;
+  --danger: #c02a2a;
+  --danger-soft: #fdeceb;
+  --code-bg: #f3f5f8;
+  --code-text: #24292f;
+  --tok-k: #a626a4;
+  --tok-s: #0a7d3e;
+  --tok-c: #8a929d;
+  --tok-n: #b8500f;
+  --tok-f: #1f5fd0;
+  --shadow: 0 1px 2px rgba(16,24,40,.04), 0 4px 16px rgba(16,24,40,.05);
+  --shadow-lg: 0 2px 8px rgba(16,24,40,.06), 0 18px 40px rgba(16,24,40,.09);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --maxw: 1180px;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB",
+          "Microsoft YaHei", "Source Han Sans SC", "Noto Sans CJK SC", Roboto, Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", "Cascadia Mono", Menlo, Consolas,
+          "Liberation Mono", "Courier New", monospace;
+}
+[data-theme="dark"] {
+  --bg: #0e1116;
+  --bg-alt: #12161c;
+  --surface: #171b22;
+  --surface-2: #1b2028;
+  --text: #e7ebf0;
+  --text-soft: #c3cad4;
+  --muted: #8d97a4;
+  --border: #262d37;
+  --border-strong: #38414d;
+  --accent: #6ea8fe;
+  --accent-soft: #16233a;
+  --accent-line: #2b4568;
+  --violet: #b197f0;
+  --violet-soft: #221a38;
+  --ok: #4bd0a4;
+  --ok-soft: #0f2b23;
+  --warn: #e8b25a;
+  --warn-soft: #2e2413;
+  --danger: #f08a86;
+  --danger-soft: #33191a;
+  --code-bg: #12161c;
+  --code-text: #dfe5ec;
+  --tok-k: #d9a0e0;
+  --tok-s: #7fd4a0;
+  --tok-c: #6d7885;
+  --tok-n: #e0a273;
+  --tok-f: #7fb2ff;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25);
+  --shadow-lg: 0 2px 8px rgba(0,0,0,.35), 0 18px 40px rgba(0,0,0,.4);
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+img, svg { max-width: 100%; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1, h2, h3, h4 { line-height: 1.32; font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 1.72rem; margin: 0 0 6px; }
+h3 { font-size: 1.24rem; margin: 34px 0 12px; }
+h4 { font-size: 1.04rem; margin: 24px 0 8px; }
+p { margin: 0 0 14px; }
+ul, ol { margin: 0 0 16px; padding-left: 22px; }
+li { margin-bottom: 7px; }
+li > ul, li > ol { margin-top: 7px; margin-bottom: 4px; }
+strong { font-weight: 700; }
+code { font-family: var(--mono); font-size: .875em; }
+
+/* ============================================================
+   Top bar
+   ============================================================ */
+.topbar {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; align-items: center; gap: 14px;
+  padding: 10px clamp(14px, 3vw, 28px);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.topbar .brand { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+.topbar .brand b { font-size: .98rem; letter-spacing: -.01em; white-space: nowrap; }
+.topbar .brand span { font-size: .76rem; color: var(--muted); font-family: var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.topbar .spacer { flex: 1; }
+.btn {
+  font: inherit; font-size: .82rem; line-height: 1;
+  padding: 8px 12px; border-radius: 999px;
+  border: 1px solid var(--border-strong); background: var(--surface);
+  color: var(--text-soft); cursor: pointer; white-space: nowrap;
+  transition: background .16s, border-color .16s, color .16s;
+}
+.btn:hover { background: var(--accent-soft); border-color: var(--accent-line); color: var(--accent); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.menu-btn { display: none; }
+
+/* ============================================================
+   Layout
+   ============================================================ */
+.shell {
+  display: grid;
+  grid-template-columns: 268px minmax(0, 1fr);
+  gap: 40px;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 34px clamp(14px, 3vw, 28px) 80px;
+  align-items: start;
+}
+
+/* ============================================================
+   TOC
+   ============================================================ */
+.toc { position: sticky; top: 76px; max-height: calc(100vh - 100px); overflow-y: auto; overscroll-behavior: contain; }
+.toc-inner {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 14px 16px; box-shadow: var(--shadow);
+}
+.toc-title {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  font-size: .74rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--muted); margin: 0 0 10px;
+}
+.toc-title button {
+  font: inherit; font-size: .68rem; letter-spacing: .04em;
+  border: 1px solid var(--border); background: var(--surface-2); color: var(--muted);
+  border-radius: 6px; padding: 2px 7px; cursor: pointer;
+}
+.toc nav ol { list-style: none; margin: 0; padding: 0; counter-reset: toc; }
+.toc nav ol li { margin: 0; }
+.toc-group { border-bottom: 1px dashed var(--border); }
+.toc-group:last-child { border-bottom: 0; }
+.toc-parent {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  font: inherit; font-size: .875rem; font-weight: 600; text-align: left;
+  color: var(--text-soft); background: none; border: 0; cursor: pointer;
+  padding: 8px 6px; border-radius: var(--radius-sm);
+}
+.toc-parent:hover { background: var(--bg-alt); color: var(--accent); }
+.toc-parent .caret {
+  flex: none; width: 12px; font-size: .62rem; color: var(--muted);
+  transition: transform .2s ease; display: inline-block;
+}
+.toc-group.collapsed .caret { transform: rotate(-90deg); }
+.toc-group.collapsed .toc-sub { display: none; }
+.toc-parent .num {
+  flex: none; font-family: var(--mono); font-size: .72rem; color: var(--accent);
+  background: var(--accent-soft); border-radius: 5px; padding: 1px 6px;
+}
+.toc-sub { list-style: none; margin: 0 0 6px; padding: 0 0 0 6px; }
+.toc-sub a {
+  display: block; font-size: .815rem; color: var(--muted);
+  padding: 4px 8px 4px 20px; border-left: 2px solid transparent;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+.toc-sub a:hover { color: var(--accent); background: var(--bg-alt); text-decoration: none; }
+.toc-sub a.active { color: var(--accent); border-left-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+
+/* ============================================================
+   Content primitives
+   ============================================================ */
+main { min-width: 0; }
+
+section.doc { margin-bottom: 62px; scroll-margin-top: 84px; }
+section.doc > header {
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 14px; margin-bottom: 26px;
+}
+.sec-kicker {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: .72rem; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 8px;
+}
+.sec-kicker::before {
+  content: ""; width: 22px; height: 2px; background: var(--accent); border-radius: 2px;
+}
+.sec-lead { color: var(--muted); font-size: .96rem; margin: 6px 0 0; max-width: 76ch; }
+
+/* Callout: plain-language takeaway */
+.takeaway {
+  display: grid; grid-template-columns: auto 1fr; gap: 14px;
+  background: var(--accent-soft); border: 1px solid var(--accent-line);
+  border-radius: var(--radius); padding: 15px 18px; margin: 0 0 26px;
+}
+.takeaway .icon { font-size: 1.15rem; line-height: 1.5; }
+.takeaway .label {
+  font-size: .7rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--accent); display: block; margin-bottom: 3px;
+}
+.takeaway p { margin: 0; font-size: .95rem; color: var(--text-soft); }
+.takeaway p + p { margin-top: 8px; }
+
+/* Highlight box */
+.hl {
+  border-left: 4px solid var(--violet); background: var(--violet-soft);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 14px 18px; margin: 22px 0;
+}
+.hl .label { font-size: .7rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--violet); display: block; margin-bottom: 4px; }
+.hl p:last-child { margin-bottom: 0; }
+
+.box-warn { border-left: 4px solid var(--warn); background: var(--warn-soft); border-radius: 0 var(--radius) var(--radius) 0; padding: 14px 18px; margin: 22px 0; }
+.box-warn .label { font-size: .7rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--warn); display: block; margin-bottom: 4px; }
+.box-warn p:last-child { margin-bottom: 0; }
+
+.box-ok { border-left: 4px solid var(--ok); background: var(--ok-soft); border-radius: 0 var(--radius) var(--radius) 0; padding: 14px 18px; margin: 22px 0; }
+.box-ok .label { font-size: .7rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--ok); display: block; margin-bottom: 4px; }
+.box-ok p:last-child { margin-bottom: 0; }
+
+/* Definition card */
+.defcard {
+  background: linear-gradient(180deg, var(--surface), var(--surface-2));
+  border: 1px solid var(--border-strong); border-radius: var(--radius);
+  padding: 22px 24px; margin: 0 0 28px; box-shadow: var(--shadow);
+  position: relative; overflow: hidden;
+}
+.defcard::before {
+  content: ""; position: absolute; inset: 0 auto 0 0; width: 5px;
+  background: linear-gradient(180deg, var(--accent), var(--violet));
+}
+.defcard .tag { font-size: .7rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+.defcard blockquote { margin: 10px 0 0; font-size: 1.12rem; line-height: 1.7; font-weight: 600; color: var(--text); }
+.defcard .sub { margin: 12px 0 0; font-size: .9rem; color: var(--muted); }
+
+/* Card grid */
+.grid { display: grid; gap: 16px; margin: 20px 0 26px; }
+.grid.c2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.grid.c3 { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+.grid.c4 { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow);
+  transition: border-color .18s, transform .18s, box-shadow .18s;
+}
+.card:hover { border-color: var(--border-strong); transform: translateY(-1px); box-shadow: var(--shadow-lg); }
+.card h4 { margin: 0 0 6px; font-size: .98rem; }
+.card .num-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; border-radius: 7px; flex: none;
+  background: var(--accent-soft); color: var(--accent);
+  font-family: var(--mono); font-size: .78rem; font-weight: 700; margin-right: 9px;
+}
+.card .head { display: flex; align-items: flex-start; margin-bottom: 5px; }
+.card .head h4 { margin: 2px 0 0; }
+.card p { font-size: .89rem; color: var(--text-soft); margin: 0 0 8px; }
+.card p:last-child { margin-bottom: 0; }
+.card .meta { font-size: .78rem; color: var(--muted); font-family: var(--mono); }
+
+/* Table */
+.tablewrap { overflow-x: auto; margin: 20px 0 26px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+table { width: 100%; border-collapse: collapse; font-size: .875rem; min-width: 560px; }
+caption {
+  caption-side: top; text-align: left; font-size: .78rem; color: var(--muted);
+  padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--surface-2);
+  font-weight: 600; letter-spacing: .02em;
+}
+th, td { padding: 10px 14px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--border); }
+thead th {
+  background: var(--surface-2); font-size: .76rem; font-weight: 800;
+  letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+  position: sticky; top: 0; z-index: 1;
+}
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover { background: var(--bg-alt); }
+tbody tr[data-emphasis="true"] { background: linear-gradient(90deg, var(--accent-soft), transparent 70%); }
+tbody tr[data-emphasis="true"] td { font-weight: 700; color: var(--accent); border-top: 2px solid var(--accent-line); }
+td code, th code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; border: 1px solid var(--border); }
+
+/* Pills */
+.pill {
+  display: inline-block; font-size: .71rem; font-weight: 700; line-height: 1.6;
+  padding: 1px 8px; border-radius: 999px; white-space: nowrap;
+  border: 1px solid transparent; font-family: var(--mono);
+}
+.pill.ok { background: var(--ok-soft); color: var(--ok); border-color: color-mix(in srgb, var(--ok) 26%, transparent); }
+.pill.warn { background: var(--warn-soft); color: var(--warn); border-color: color-mix(in srgb, var(--warn) 26%, transparent); }
+.pill.bad { background: var(--danger-soft); color: var(--danger); border-color: color-mix(in srgb, var(--danger) 26%, transparent); }
+.pill.info { background: var(--accent-soft); color: var(--accent); border-color: var(--accent-line); }
+.pill.mute { background: var(--bg-alt); color: var(--muted); border-color: var(--border); }
+
+/* Blockquote */
+blockquote {
+  margin: 20px 0; padding: 6px 0 6px 20px;
+  border-left: 3px solid var(--border-strong);
+  color: var(--text-soft); font-style: normal;
+}
+blockquote p { margin: 0 0 8px; }
+blockquote p:last-child { margin-bottom: 0; }
+blockquote cite { display: block; margin-top: 6px; font-size: .8rem; color: var(--muted); font-style: normal; }
+blockquote cite::before { content: "— "; }
+
+/* Details / collapsible */
+details.block {
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--surface); margin: 14px 0; overflow: hidden;
+}
+details.block > summary {
+  cursor: pointer; list-style: none; padding: 13px 18px;
+  font-weight: 600; font-size: .94rem; display: flex; align-items: center; gap: 10px;
+  background: var(--surface-2); border: 0;
+}
+details.block > summary::-webkit-details-marker { display: none; }
+details.block > summary::before {
+  content: "▸"; font-size: .8rem; color: var(--accent); transition: transform .2s ease; display: inline-block;
+}
+details.block[open] > summary::before { transform: rotate(90deg); }
+details.block > summary:hover { background: var(--bg-alt); }
+details.block > .body { padding: 16px 20px 18px; border-top: 1px solid var(--border); }
+details.block > .body > *:first-child { margin-top: 0; }
+details.block > .body > *:last-child { margin-bottom: 0; }
+
+/* Code */
+pre {
+  margin: 18px 0; padding: 15px 17px; overflow-x: auto;
+  background: var(--code-bg); border: 1px solid var(--border);
+  border-radius: var(--radius); font-family: var(--mono);
+  font-size: .8rem; line-height: 1.7; color: var(--code-text);
+  tab-size: 2;
+}
+pre code { font-size: inherit; background: none; padding: 0; }
+.codecap {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  font-family: var(--mono); font-size: .72rem; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--muted); margin: 22px 0 -8px;
+}
+.codecap .lang { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 5px; padding: 1px 7px; }
+.tok-k { color: var(--tok-k); font-weight: 600; }
+.tok-s { color: var(--tok-s); }
+.tok-c { color: var(--tok-c); font-style: italic; }
+.tok-n { color: var(--tok-n); }
+.tok-f { color: var(--tok-f); }
+
+/* Figures */
+figure {
+  margin: 26px 0; padding: 20px 18px 12px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+}
+figure svg { display: block; width: 100%; height: auto; }
+figcaption {
+  margin-top: 12px; font-size: .8rem; color: var(--muted); text-align: center;
+  border-top: 1px dashed var(--border); padding-top: 10px;
+}
+figcaption b { color: var(--text-soft); }
+
+/* Reference list */
+.reflist { list-style: none; padding: 0; margin: 18px 0; counter-reset: ref; font-size: .87rem; }
+.reflist li {
+  counter-increment: ref; position: relative; padding: 9px 0 9px 40px;
+  border-bottom: 1px solid var(--border);
+}
+.reflist li:last-child { border-bottom: 0; }
+.reflist li::before {
+  content: "[" counter(ref) "]"; position: absolute; left: 0; top: 9px;
+  font-family: var(--mono); font-size: .74rem; color: var(--accent); font-weight: 700;
+}
+.reflist .src { display: block; color: var(--muted); font-size: .79rem; margin-top: 2px; word-break: break-word; }
+
+/* Hero */
+.hero {
+  background:
+    radial-gradient(1100px 380px at 12% -20%, var(--accent-soft), transparent 62%),
+    radial-gradient(900px 340px at 92% 0%, var(--violet-soft), transparent 58%),
+    var(--surface);
+  border: 1px solid var(--border); border-radius: 18px;
+  padding: clamp(24px, 4vw, 40px); margin-bottom: 44px; box-shadow: var(--shadow);
+}
+.hero .eyebrow {
+  font-family: var(--mono); font-size: .74rem; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 10px;
+}
+.hero h1 { font-size: clamp(1.7rem, 3.6vw, 2.5rem); margin: 0 0 6px; letter-spacing: -.025em; }
+.hero .en { font-family: var(--mono); font-size: .93rem; color: var(--muted); margin-bottom: 18px; }
+.hero .abstract { font-size: 1rem; color: var(--text-soft); max-width: 78ch; margin-bottom: 22px; }
+.hero .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 8px; }
+.fact {
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 11px 13px;
+}
+.fact .k { font-size: .68rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
+.fact .v { font-size: .92rem; font-weight: 700; margin-top: 2px; }
+
+/* Footer */
+.foot {
+  max-width: var(--maxw); margin: 0 auto; padding: 26px clamp(14px, 3vw, 28px) 60px;
+  border-top: 1px solid var(--border); font-size: .82rem; color: var(--muted);
+}
+.foot p { margin: 0 0 6px; }
+
+/* Back to top */
+.totop {
+  position: fixed; right: 20px; bottom: 22px; z-index: 40;
+  width: 42px; height: 42px; border-radius: 50%;
+  border: 1px solid var(--border-strong); background: var(--surface); color: var(--text-soft);
+  cursor: pointer; box-shadow: var(--shadow-lg); font-size: 1rem;
+  opacity: 0; pointer-events: none; transition: opacity .22s;
+}
+.totop.show { opacity: 1; pointer-events: auto; }
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+@media (max-width: 1000px) {
+  .shell { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .toc { position: static; max-height: none; }
+  .toc-inner { padding: 12px; }
+  .toc nav ol { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0 16px; }
+  .toc-group { break-inside: avoid; }
+  .menu-btn { display: inline-block; }
+  .toc.collapsed-mobile .toc-sub { display: none; }
+}
+@media (max-width: 620px) {
+  body { font-size: 15px; }
+  h2 { font-size: 1.4rem; }
+  h3 { font-size: 1.1rem; margin-top: 26px; }
+  .hero { border-radius: 14px; }
+  .facts { grid-template-columns: repeat(2, 1fr); }
+  .tablewrap { border-radius: var(--radius-sm); }
+  table { min-width: 480px; font-size: .82rem; }
+  th, td { padding: 8px 10px; }
+  pre { font-size: .74rem; padding: 12px; }
+  figcaption { font-size: .74rem; }
+}
+
+/* ============================================================
+   Print
+   ============================================================ */
+@media print {
+  :root { --bg:#fff; --surface:#fff; --surface-2:#fff; --text:#000; --text-soft:#111; --muted:#444; --border:#bbb; --border-strong:#888; --accent:#0b3d91; --accent-soft:#f0f4fb; --violet-soft:#f6f2fd; --ok-soft:#f0f7f4; --warn-soft:#fdf8ef; --danger-soft:#fdf1f1; --code-bg:#f7f7f7; --code-text:#000; --shadow:none; --shadow-lg:none; }
+  html { scroll-behavior: auto; }
+  body { font-size: 10.5pt; line-height: 1.5; }
+  .topbar, .toc, .totop, .menu-btn { display: none !important; }
+  .shell { display: block; max-width: none; padding: 0; }
+  .hero { break-inside: avoid; border-radius: 0; box-shadow: none; }
+  section.doc { break-before: auto; margin-bottom: 28px; }
+  h2, h3, h4 { break-after: avoid; }
+  section.doc > header { border-bottom-color: #999; }
+  details.block { break-inside: avoid; }
+  details.block > .body { display: block !important; }
+  details.block > summary { background: none; font-weight: 700; }
+  details.block > summary::before { content: ""; }
+  pre, figure, .tablewrap, .card, .defcard, .takeaway, .hl, .box-warn, .box-ok { break-inside: avoid; }
+  figure { box-shadow: none; }
+  .grid { display: block; }
+  .grid > * { margin-bottom: 10px; }
+  a { color: #000; text-decoration: underline; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 8pt; color: #555; word-break: break-all; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { transition: none !important; animation: none !important; }
+}
+</style>
+<style id="litho-print">
+/* ==========================================================================
+   LITHOGRAPHY THEME · 石版印刷
+   Chromolithograph plate on cream stock — flat spot inks, hairline rules,
+   halftone grounds, bracketed serifs. No gradients, no rounded corners,
+   no drop shadows. Applied as an override layer: the base stylesheet is
+   fully custom-property driven, so most of the re-skin is token-level.
+   ========================================================================== */
+
+/* ---------- 1. Palette: five spot inks on cream stock ---------- */
+:root {
+  /* substrate */
+  --paper:        #EFE2CC;
+  --paper-2:      #E6D6B8;
+  --panel:        #F6EBD8;
+  --panel-2:      #EDDEC2;
+
+  /* ink */
+  --ink:          #0D0D15;
+  --ink-soft:     #3A3730;
+  --ink-muted:    #7A6A55;
+  --rule:         #C6B393;
+  --rule-soft:    #D9C9A9;
+  --rule-strong:  #9C8763;
+
+  /* spot inks (chromolithographic plates) */
+  --verm:         #B23E19;
+  --verm-fill:    #E85D35;
+  --verm-tint:    #ECD5C1;
+  --prussian:     #223A70;
+  --prussian-tint:#DCE3EE;
+  --ochre:        #85600E;
+  --ochre-tint:   #EDDCBC;
+  --olive:        #47592F;
+  --olive-tint:   #DEE3D1;
+  --plum:         #5B3A6E;
+  --plum-tint:    #E5D9E9;
+
+  --halftone-dot: rgba(13,13,21,.10);
+  --misreg:       rgba(178,62,25,.18);
+  --grain:        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.55 0.55 0.55 0 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)'/%3E%3C/svg%3E");
+
+  /* type */
+  --font: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua",
+          "Songti SC", "Source Han Serif SC", "Noto Serif CJK SC",
+          "SimSun", "STSong", "Times New Roman", serif;
+  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+             "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC",
+             Roboto, Helvetica, Arial, sans-serif;
+
+  /* --- remap the base stylesheet's tokens onto the press palette --- */
+  --bg:            var(--paper);
+  --bg-alt:        var(--paper-2);
+  --surface:       var(--panel);
+  --surface-2:     var(--panel-2);
+  --text:          var(--ink);
+  --text-soft:     var(--ink-soft);
+  --muted:         var(--ink-muted);
+  --border:        var(--rule-soft);
+  --border-strong: var(--rule);
+  --accent:        var(--verm);
+  --accent-soft:   var(--verm-tint);
+  --accent-line:   #D2A184;
+  --violet:        var(--plum);
+  --violet-soft:   var(--plum-tint);
+  --ok:            var(--olive);
+  --ok-soft:       var(--olive-tint);
+  --warn:          var(--ochre);
+  --warn-soft:     var(--ochre-tint);
+  --danger:        #A82E16;
+  --danger-soft:   #EFD8CE;
+  --code-bg:       #E4D3B2;
+  --code-text:     var(--ink);
+  --tok-k:         var(--verm);
+  --tok-s:         var(--olive);
+  --tok-c:         var(--ink-muted);
+  --tok-n:         var(--ochre);
+  --tok-f:         var(--prussian);
+
+  /* print does not float */
+  --shadow:        none;
+  --shadow-lg:     2px 2px 0 var(--misreg);
+  --radius:        0px;
+  --radius-sm:     0px;
+
+  /* SVG ink set (see section 9) */
+  --svg-ink:            #3A3730;
+  --svg-muted:          #7A6A55;
+  --svg-prussian:       #223A70;
+  --svg-prussian-tint:  #DCE3EE;
+  --svg-prussian-rule:  #A9B8D1;
+  --svg-plum:           #5B3A6E;
+  --svg-plum-tint:      #E5D9E9;
+  --svg-plum-rule:      #BFA9C7;
+  --svg-olive:          #47592F;
+  --svg-olive-tint:     #DEE3D1;
+  --svg-ochre:          #85600E;
+  --svg-ochre-tint:     #EDDCBC;
+  --svg-ochre-rule:     #C8963A;
+  --svg-red:            #B23E19;
+  --svg-red-tint:       #EFD8CE;
+  --svg-rule:           #C6B393;
+  --svg-rule-soft:      #DFD2B6;
+  --svg-neutral-tint:   #E6D6B8;
+  --svg-chip:           #F6EBD8;
+}
+
+/* ---------- 2. Night plate: dark mode as reversed impression ---------- */
+[data-theme="dark"] {
+  --paper:        #12100C;
+  --paper-2:      #1A1611;
+  --panel:        #1B1813;
+  --panel-2:      #221D16;
+
+  --ink:          #E9DCC0;
+  --ink-soft:     #D2C3A5;
+  --ink-muted:    #97876D;
+  --rule:         #453C2D;
+  --rule-soft:    #322B21;
+  --rule-strong:  #635641;
+
+  --verm:         #E4734D;
+  --verm-fill:    #E4734D;
+  --verm-tint:    #3A2015;
+  --prussian:     #8FAAD8;
+  --prussian-tint:#1B2740;
+  --ochre:        #D2A556;
+  --ochre-tint:   #302514;
+  --olive:        #95AE7E;
+  --olive-tint:   #232B1D;
+  --plum:         #B49AC6;
+  --plum-tint:    #2A2136;
+
+  --halftone-dot: rgba(233,220,192,.08);
+  --misreg:       rgba(228,115,77,.22);
+  --grain:        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0.5 0.5 0.5 0 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)'/%3E%3C/svg%3E");
+
+  --danger:       #E4734D;
+  --danger-soft:  #3A2015;
+  --code-bg:      #201B14;
+  --accent-line:  #6E4530;
+
+  --svg-ink:            #D2C3A5;
+  --svg-muted:          #97876D;
+  --svg-prussian:       #93AFDC;
+  --svg-prussian-tint:  #1E2A44;
+  --svg-prussian-rule:  #4B5F86;
+  --svg-plum:           #B49AC6;
+  --svg-plum-tint:      #2A2136;
+  --svg-plum-rule:      #5A4468;
+  --svg-olive:          #97B080;
+  --svg-olive-tint:     #242C1E;
+  --svg-ochre:          #D6A957;
+  --svg-ochre-tint:     #322715;
+  --svg-ochre-rule:     #8E6E2F;
+  --svg-red:            #E4734D;
+  --svg-red-tint:       #3A2015;
+  --svg-rule:           #4A4133;
+  --svg-rule-soft:      #352E23;
+  --svg-neutral-tint:   #241F17;
+  --svg-chip:           #1F1B14;
+}
+
+/* ---------- 3. The stock: body, grain, running head ---------- */
+html { background: var(--paper); }
+body {
+  font-family: var(--font);
+  font-size: 16.5px;
+  line-height: 1.88;
+  letter-spacing: .012em;
+  background-color: var(--paper);
+}
+body::after {
+  content: "";
+  position: fixed; inset: 0; z-index: 900;
+  pointer-events: none;
+  background-image: var(--grain);
+  background-size: 180px 180px;
+  opacity: .13;
+}
+[data-theme="dark"] body::after { opacity: .10; }
+
+::selection { background: var(--verm); color: var(--panel); }
+
+.topbar {
+  background: color-mix(in srgb, var(--paper) 94%, transparent);
+  border-bottom: 3px double var(--rule-strong);
+  z-index: 60;
+}
+.topbar .brand b { font-family: var(--font); letter-spacing: .04em; }
+.topbar .brand span { font-family: var(--mono); letter-spacing: .06em; }
+.btn {
+  border-radius: 0;
+  border: 1px solid var(--rule-strong);
+  background: var(--panel);
+  color: var(--ink-soft);
+  font-family: var(--mono);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: 7px 12px;
+}
+.btn:hover { background: var(--verm); border-color: var(--verm); color: var(--panel); }
+.btn:focus-visible { outline: 2px solid var(--verm); outline-offset: 1px; }
+
+/* ---------- 4. Typography: bracketed serifs, ruled headings ---------- */
+h1, h2, h3, h4 { font-family: var(--font); letter-spacing: 0; }
+h2, h3 { font-weight: 700; }
+.sec-kicker { font-family: var(--mono); letter-spacing: .24em; color: var(--verm); }
+.sec-kicker::before { width: 30px; height: 1px; background: var(--verm); border-radius: 0; }
+.sec-lead { font-family: var(--font); color: var(--ink-muted); }
+section.doc > header { border-bottom: 3px double var(--rule-strong); padding-bottom: 15px; }
+
+/* Chinese cannot be italicised — synthesised obliques read as a printing
+   error. Emphasis becomes weight, which is how Chinese type sets it. */
+em, i, cite { font-style: normal; font-weight: 700; }
+/* same reason inside the plates: labels stay upright */
+figure text { font-style: normal; }
+
+section.doc + section.doc::before {
+  content: "\2042";
+  display: block;
+  text-align: center;
+  font-size: 1.15rem;
+  line-height: 1;
+  letter-spacing: .5em;
+  color: var(--rule-strong);
+  margin: 0 0 34px;
+}
+
+/* ---------- 5. Plates: hero, cards, callouts ---------- */
+.hero {
+  background: var(--panel);
+  border: 1px solid var(--rule-strong);
+  outline: 1px solid var(--rule-soft);
+  outline-offset: 5px;
+  border-radius: 0;
+  box-shadow: none;
+  background-image: radial-gradient(var(--halftone-dot) .8px, transparent .9px);
+  background-size: 6px 6px;
+}
+.hero .eyebrow { font-family: var(--mono); letter-spacing: .26em; color: var(--verm); }
+.hero h1 { font-weight: 700; letter-spacing: .01em; }
+.hero .en { font-family: var(--mono); letter-spacing: .02em; }
+.hero .abstract { font-family: var(--font); }
+.fact { background: var(--panel-2); border: 1px solid var(--rule); border-radius: 0; }
+.fact .k { font-family: var(--mono); letter-spacing: .14em; color: var(--verm); }
+.fact .v { font-family: var(--font); }
+
+.card, figure, .defcard, .toc-inner, .tablewrap, details.block, pre,
+.takeaway, .hl, .box-ok, .box-warn { border-radius: 0; }
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  box-shadow: 2px 2px 0 var(--misreg);
+  transition: border-color .14s, box-shadow .14s;
+}
+.card:hover {
+  transform: none;
+  border-color: var(--rule-strong);
+  box-shadow: 3px 3px 0 var(--misreg);
+}
+.card h4, .card p { font-family: var(--font); }
+.card .num-badge {
+  border-radius: 0;
+  background: transparent;
+  border: 1px solid var(--verm);
+  color: var(--verm);
+  font-family: var(--mono);
+  letter-spacing: .02em;
+}
+.card .meta { font-family: var(--mono); letter-spacing: .04em; }
+
+.takeaway, .hl, .box-ok, .box-warn, .defcard {
+  background-image: radial-gradient(var(--halftone-dot) .8px, transparent .9px);
+  background-size: 5px 5px;
+}
+.takeaway { border: 1px solid var(--accent-line); border-left: 4px solid var(--verm); }
+.hl, .box-ok, .box-warn { border-radius: 0; }
+.hl       { border-left: 4px solid var(--plum); }
+.box-ok   { border-left: 4px solid var(--olive); }
+.box-warn { border-left: 4px solid var(--ochre); }
+.takeaway .label, .hl .label, .box-ok .label, .box-warn .label {
+  font-family: var(--mono); letter-spacing: .18em;
+}
+.takeaway .label { color: var(--verm); }
+.takeaway p { font-family: var(--font); }
+
+.defcard {
+  border: 1px solid var(--rule-strong);
+  box-shadow: 3px 3px 0 var(--misreg);
+  padding-left: 30px;
+}
+.defcard::before {
+  width: 8px;
+  background:
+    repeating-linear-gradient(45deg, var(--verm) 0 1.5px, transparent 1.5px 3.5px),
+    var(--verm);
+}
+.defcard .tag { font-family: var(--mono); letter-spacing: .2em; color: var(--verm); }
+.defcard blockquote { font-family: var(--font); font-weight: 700; }
+
+blockquote { border-left: 3px double var(--rule-strong); font-family: var(--font); }
+blockquote cite { font-family: var(--mono); font-size: .76rem; letter-spacing: .02em; }
+
+/* ---------- 6. Index (TOC) ---------- */
+.toc-inner { border: 1px solid var(--rule); background: var(--panel); box-shadow: none; }
+.toc-title { font-family: var(--mono); letter-spacing: .22em; color: var(--verm); }
+.toc-title button { border-radius: 0; font-family: var(--mono); letter-spacing: .1em; }
+.toc-group { border-bottom: 1px dotted var(--rule); }
+.toc-parent { font-family: var(--font); }
+.toc-parent:hover { background: var(--panel-2); color: var(--verm); }
+.toc-parent .num {
+  border-radius: 0;
+  background: transparent;
+  border: 1px solid var(--rule);
+  color: var(--verm);
+  font-family: var(--mono);
+}
+.toc-sub a {
+  font-family: var(--font);
+  border-left: 2px solid var(--rule-soft);
+  border-radius: 0;
+  padding-left: 16px;
+}
+.toc-sub a:hover { background: var(--panel-2); color: var(--verm); }
+.toc-sub a.active {
+  background: var(--verm-tint);
+  border-left: 2px solid var(--verm);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* ---------- 7. Tables: ruled registers ---------- */
+table { font-family: var(--font); }
+caption {
+  background: var(--panel-2);
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--font);
+  font-weight: 700;
+  letter-spacing: .02em;
+  color: var(--ink-soft);
+}
+thead th {
+  background: var(--panel-2);
+  border-bottom: 2px solid var(--ink);
+  color: var(--verm);
+  font-family: var(--mono);
+  letter-spacing: .14em;
+}
+th, td { border-bottom: 1px solid var(--rule-soft); }
+tbody tr:hover { background: color-mix(in srgb, var(--verm) 6%, transparent); }
+tbody tr[data-emphasis="true"] { background: color-mix(in srgb, var(--verm) 8%, transparent); }
+tbody tr[data-emphasis="true"] td { color: var(--verm); border-top: 2px double var(--verm); }
+td code, th code { border-radius: 0; border: 1px solid var(--rule); background: var(--code-bg); }
+
+/* ---------- 8. Stamps, blocks, plates ---------- */
+.pill {
+  border-radius: 0;
+  font-family: var(--mono);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 0 7px;
+}
+details.block > summary {
+  font-family: var(--font);
+  background: var(--panel-2);
+  border-left: 3px solid var(--verm);
+}
+details.block > .body { background: var(--panel); border-top: 1px solid var(--rule); }
+
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--rule);
+  font-family: var(--mono);
+  letter-spacing: 0;
+  box-shadow: 2px 2px 0 var(--misreg);
+}
+.codecap { font-family: var(--mono); letter-spacing: .14em; color: var(--verm); }
+.codecap .lang { border-radius: 0; background: transparent; border: 1px solid var(--rule); }
+
+figure {
+  border: 1px solid var(--rule-strong);
+  outline: 1px solid var(--rule-soft);
+  outline-offset: 4px;
+  background: var(--panel);
+  box-shadow: none;
+}
+figcaption { border-top: 1px solid var(--rule); font-family: var(--font); color: var(--ink-muted); }
+figcaption b { color: var(--verm); }
+figure svg text { font-family: var(--font-ui); letter-spacing: 0; }
+
+.reflist li { border-bottom: 1px solid var(--rule-soft); }
+.reflist li::before { font-family: var(--mono); color: var(--verm); }
+.reflist .src { font-family: var(--font); font-size: .78rem; }
+
+.totop {
+  border-radius: 0;
+  border: 1px solid var(--rule-strong);
+  background: var(--panel);
+  color: var(--verm);
+  box-shadow: 2px 2px 0 var(--misreg);
+}
+.totop:hover { background: var(--verm); color: var(--panel); }
+
+/* ---------- 9. Figure plates: remap the hard-coded SVG ink ---------- */
+svg [fill="#3d4450"] { fill: var(--svg-ink); }
+svg [fill="#6b7480"] { fill: var(--svg-muted); }
+svg [fill="#1f5fd0"] { fill: var(--svg-prussian); }
+svg [fill="#e8f0fe"] { fill: var(--svg-prussian-tint); }
+svg [fill="#b9cdf3"] { fill: var(--svg-prussian-rule); }
+svg [fill="#6d3fc4"] { fill: var(--svg-plum); }
+svg [fill="#f1ebfd"] { fill: var(--svg-plum-tint); }
+svg [fill="#d5c7f4"] { fill: var(--svg-plum-rule); }
+svg [fill="#08795f"] { fill: var(--svg-olive); }
+svg [fill="#e2f5ef"] { fill: var(--svg-olive-tint); }
+svg [fill="#a86204"] { fill: var(--svg-ochre); }
+svg [fill="#fdf1de"] { fill: var(--svg-ochre-tint); }
+svg [fill="#f0c98a"] { fill: var(--svg-ochre-rule); }
+svg [fill="#c02a2a"] { fill: var(--svg-red); }
+svg [fill="#fdeceb"] { fill: var(--svg-red-tint); }
+svg [fill="#eaedf2"] { fill: var(--svg-neutral-tint); }
+svg [fill="#cbd2da"] { fill: var(--svg-rule); }
+svg [fill="#e1e5ea"] { fill: var(--svg-rule-soft); }
+svg [fill="#ffffff"]  { fill: var(--svg-chip); }
+svg [fill="#fff"]     { fill: var(--svg-chip); }
+
+svg [stroke="#3d4450"] { stroke: var(--svg-ink); }
+svg [stroke="#6b7480"] { stroke: var(--svg-muted); }
+svg [stroke="#1f5fd0"] { stroke: var(--svg-prussian); }
+svg [stroke="#b9cdf3"] { stroke: var(--svg-prussian-rule); }
+svg [stroke="#6d3fc4"] { stroke: var(--svg-plum); }
+svg [stroke="#d5c7f4"] { stroke: var(--svg-plum-rule); }
+svg [stroke="#08795f"] { stroke: var(--svg-olive); }
+svg [stroke="#a86204"] { stroke: var(--svg-ochre); }
+svg [stroke="#f0c98a"] { stroke: var(--svg-ochre-rule); }
+svg [stroke="#c02a2a"] { stroke: var(--svg-red); }
+svg [stroke="#cbd2da"] { stroke: var(--svg-rule); }
+svg [stroke="#e1e5ea"] { stroke: var(--svg-rule-soft); }
+
+/* tint washes read too faintly on the reversed plate */
+[data-theme="dark"] svg [fill-opacity="0.06"] { fill-opacity: .34; }
+[data-theme="dark"] svg [fill-opacity="0.07"] { fill-opacity: .34; }
+[data-theme="dark"] svg [fill-opacity="0.09"] { fill-opacity: .34; }
+[data-theme="dark"] svg [fill-opacity="0.35"] { fill-opacity: .42; }
+[data-theme="dark"] svg [fill-opacity="0.45"] { fill-opacity: .50; }
+[data-theme="dark"] svg [stroke-opacity="0.25"] { stroke-opacity: .50; }
+[data-theme="dark"] svg [stroke-opacity="0.3"]  { stroke-opacity: .50; }
+[data-theme="dark"] svg [stroke-opacity="0.35"] { stroke-opacity: .55; }
+[data-theme="dark"] svg [stroke-opacity="0.4"]  { stroke-opacity: .60; }
+[data-theme="dark"] svg [stroke-opacity="0.45"] { stroke-opacity: .60; }
+
+/* ---------- 10. Press proof (print) ---------- */
+@media print {
+  :root {
+    --paper: #fff; --paper-2: #fff; --panel: #fff; --panel-2: #fff;
+    --ink: #000; --ink-soft: #111; --ink-muted: #444;
+    --rule: #999; --rule-soft: #ccc; --rule-strong: #666;
+    --verm: #000; --verm-tint: #f2f2f2; --prussian: #000; --plum: #000;
+    --olive: #000; --ochre: #000;
+    --ochre-tint: #f7f7f7; --olive-tint: #f7f7f7;
+    --prussian-tint: #f7f7f7; --plum-tint: #f7f7f7;
+    --code-bg: #f6f6f6; --halftone-dot: transparent; --misreg: transparent;
+    --shadow: none; --shadow-lg: none;
+  }
+  body::after { display: none; }
+  .hero, figure { outline: none; background-image: none; }
+  .card, .defcard, pre { box-shadow: none; }
+  .takeaway, .hl, .box-ok, .box-warn, .defcard { background-image: none; }
+  section.doc + section.doc::before { color: #999; }
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <b>自我感知知识库</b>
+    <span>self-aware-knowledge-base · research report</span>
+  </div>
+  <div class="spacer"></div>
+  <button class="btn menu-btn" id="menuBtn" aria-expanded="false">目录</button>
+  <button class="btn" id="expandAll" title="展开全部折叠内容">全部展开</button>
+  <button class="btn" id="themeBtn" aria-live="polite">☾ 夜版</button>
+</header>
+
+<div class="shell">
+  <!-- ================= TOC ================= -->
+  <aside class="toc" id="toc">
+    <div class="toc-inner">
+      <div class="toc-title">
+        <span>目录</span>
+        <button id="tocToggle" title="折叠/展开所有分组">折叠</button>
+      </div>
+      <nav aria-label="文档目录">
+        <ol>
+          <li class="toc-group" data-open="true">
+            <button class="toc-parent"><span class="caret">▾</span><span class="num">00</span>摘要</button>
+            <ul class="toc-sub">
+              <li><a href="#abstract">核心结论与阅读指引</a></li>
+            </ul>
+          </li>
+          <li class="toc-group" data-open="true">
+            <button class="toc-parent"><span class="caret">▾</span><span class="num">01</span>它是什么，站在哪里</button>
+            <ul class="toc-sub">
+              <li><a href="#p1-what">1.1 从"内容"到"内容 + 状态"</a></li>
+              <li><a href="#p1-features">1.2 六大核心特征</a></li>
+              <li><a href="#p1-generations">1.3 三代知识系统的分野</a></li>
+              <li><a href="#p1-definition">1.4 一句话定义</a></li>
+              <li><a href="#p1-neighbors">1.5 与相邻概念的边界</a></li>
+              <li><a href="#p1-niche">1.6 生态位：横跨的元层</a></li>
+              <li><a href="#p1-cognition">1.7 认知坐标</a></li>
+              <li><a href="#p1-problem">1.8 解决的核心问题</a></li>
+              <li><a href="#p1-domains">1.9 六个应用领域</a></li>
+            </ul>
+          </li>
+          <li class="toc-group" data-open="true">
+            <button class="toc-parent"><span class="caret">▾</span><span class="num">02</span>理论早已就位，工程刚赶上</button>
+            <ul class="toc-sub">
+              <li><a href="#p2-map">2.1 四条线索与三个时期</a></li>
+              <li><a href="#p2-kwik">2.2 KWIK：有界地说出"我不知道"</a></li>
+              <li><a href="#p2-completeness">2.3 完备性评估</a></li>
+              <li><a href="#p2-selfaware">2.4 自我意识的三个设计约束</a></li>
+              <li><a href="#p2-others">2.5 不确定与冲突的形式工具</a></li>
+              <li><a href="#p2-calibration">2.6 校准与二阶精度</a></li>
+              <li><a href="#p2-symbolic">2.7 古典符号系统</a></li>
+              <li><a href="#p2-papers">2.8 学术前沿与开源系统</a></li>
+              <li><a href="#p2-opensource">2.9 开源工程系统</a></li>
+              <li><a href="#p2-commercial">2.10 商业产品</a></li>
+              <li><a href="#p2-matrix">2.11 横向能力矩阵</a></li>
+            </ul>
+          </li>
+          <li class="toc-group" data-open="true">
+            <button class="toc-parent"><span class="caret">▾</span><span class="num">03</span>缺什么，能做什么</button>
+            <ul class="toc-sub">
+              <li><a href="#p3-gaps">3.1 现有实现缺失什么</a></li>
+              <li><a href="#p3-blueprint">3.2 完整系统的组件蓝图</a></li>
+              <li><a href="#p3-opportunities">3.3 研究机会</a></li>
+              <li><a href="#p3-challenges">3.4 潜在挑战</a></li>
+            </ul>
+          </li>
+          <li class="toc-group" data-open="true">
+            <button class="toc-parent"><span class="caret">▾</span><span class="num">A</span>附录</button>
+            <ul class="toc-sub">
+              <li><a href="#apx-refs">核心文献清单</a></li>
+              <li><a href="#apx-keywords">检索关键词</a></li>
+              <li><a href="#apx-method">调研方法与说明</a></li>
+            </ul>
+          </li>
+        </ol>
+      </nav>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main>
+
+    <!-- ---------- HERO ---------- -->
+    <div class="hero" id="top">
+      <div class="eyebrow">Research Report · 2026-09-11</div>
+      <h1>自我感知知识库</h1>
+      <div class="en">Self-Aware Knowledge Base — definition, niche, theory, implementations, applications, and open opportunities</div>
+      <p class="abstract">
+        本报告回答一个问题：<strong>当一个知识系统开始"知道自己知道什么、不知道什么、有多确信、从何而来、是否过时"，
+        并据此改变自己的行为时，它变成了什么？</strong>报告横跨认识论、元认知科学、非单调推理与当代 LLM 研究四条线索，
+        梳理出 40 余项理论、方法与系统的谱系，并指出：这个方向目前<strong>有清晰的部件级进展，但没有组装完成的整机</strong>。
+      </p>
+      <div class="facts">
+        <div class="fact"><div class="k">调研范围</div><div class="v">4 条理论线索 · 40+ 项工作</div></div>
+        <div class="fact"><div class="k">时间跨度</div><div class="v">1979 — 2026</div></div>
+        <div class="fact"><div class="k">核心判断</div><div class="v">部件齐备，整机缺失</div></div>
+        <div class="fact"><div class="k">最大的缺口</div><div class="v">知识状态的统一表示层</div></div>
+      </div>
+    </div>
+
+    <!-- ================= 摘要 ================= -->
+    <section class="doc" id="abstract">
+      <header>
+        <div class="sec-kicker">Summary</div>
+        <h2>摘要：核心结论与阅读指引</h2>
+        <p class="sec-lead">先给结论，再给论证。以下六条是本次调研最值得团队讨论的判断。</p>
+      </header>
+
+      <div class="takeaway">
+        <div class="icon">💡</div>
+        <div>
+          <span class="label">一句话结论</span>
+          <p>传统知识库回答"我知道什么"；自我感知知识库还要回答"我凭什么知道、我有多确定、我不知道的部分在哪里"，并把答案用于自己的行为决策。</p>
+        </div>
+      </div>
+
+      <div class="grid c2">
+        <div class="card">
+          <div class="head"><span class="num-badge">1</span><h4>它不是一个新产品品类，而是一层缺失的架构</h4></div>
+          <p>它的实质是在「知识内容」之外增加一个<strong>平行的知识状态层</strong>（knowledge-state layer）：记录边界、置信、来源、时效、冲突。不是换一种数据库，而是给它加一层"关于自己的元数据"。</p>
+        </div>
+        <div class="card">
+          <div class="head"><span class="num-badge">2</span><h4>理论早已就位，工程刚刚赶上</h4></div>
+          <p>1979 年的真值维护系统（TMS）、1985 年的自动认识逻辑、2008 年的 KWIK 框架，分别解决了"信念可撤销""知识可自指""未知可被有界地表达"。大模型只是让这些问题第一次有了<strong>足够强的底层能力</strong>。</p>
+        </div>
+        <div class="card">
+          <div class="head"><span class="num-badge">3</span><h4>当前进展集中在"感知"，缺失在"治理"</h4></div>
+          <p>学术前沿（SeaKR、DH-ICL、KBD、MetaMedQA）火力集中在<strong>检测</strong>；而企业侧真正失血的地方是<strong>治理</strong>——同一事实的多个矛盾版本、过时文档仍被信任、责任主体缺失。两端尚未接上。</p>
+        </div>
+        <div class="card">
+          <div class="head"><span class="num-badge">4</span><h4>大模型最薄弱的维度，恰好是这个方向的核心</h4></div>
+          <p>2025 年的 AI Awareness 综述对前沿模型做四维评估：元认知与情境觉知相对成熟，<strong>自我觉知是最薄弱的一维</strong>——模型缺乏持久自我模型，能"知道自身不知道"但会在生成阶段被概率采样覆盖。</p>
+        </div>
+        <div class="card">
+          <div class="head"><span class="num-badge">5</span><h4>最被低估的一块：记忆框架已经实现了部分"自我管理"</h4></div>
+          <p>Letta（原 MemGPT）让智能体通过工具调用自己管理记忆；Zep/Graphiti 用双时态知识图谱记录"某时刻为真"；Mem0 用 LLM 抽取加冲突消解决定记什么。这些系统在无人冠以"自我感知"之名的情况下，<strong>已实现了该概念的若干关键机制</strong>。</p>
+        </div>
+        <div class="card">
+          <div class="head"><span class="num-badge">6</span><h4>研究机会在"组装"而非"发明"</h4></div>
+          <p>最可能产生突破的方向，不是再造一个检测器，而是把已有的检测、溯源、生命周期、论证四类组件<strong>装进一个统一的架构</strong>，并给出可测量的整体指标（而非单点 F1）。第 3 部分给出六个具体选题。</p>
+        </div>
+      </div>
+
+      <div class="hl">
+        <span class="label">给团队的提问</span>
+        <p>如果我们现在要做一个自我感知知识库，第一个必须回答的问题不是"用什么模型"，而是：<strong>我们把"知识状态"存在哪里，用什么结构表达，谁有权更新它？</strong>第 3 部分的组件蓝图就是围绕这个问题展开的。</p>
+      </div>
+
+      <details class="block">
+        <summary>阅读指引：按角色推荐路径</summary>
+        <div class="body">
+          <ul>
+            <li><strong>只想快速建立判断（10 分钟）</strong>：读本摘要 → <a href="#p1-what">§1.4 一句话定义</a> → <a href="#p2-matrix">§2.9 能力矩阵</a> → <a href="#p3-gaps">§3.1 缺失清单</a>。</li>
+            <li><strong>产品与战略</strong>：§1 生态位与领域 + §3.3 研究机会。</li>
+            <li><strong>算法与研究</strong>：§2.1–2.6 理论基础 + §2.7 学术前沿 + §3.2 组件蓝图。</li>
+            <li><strong>工程与架构</strong>：§2.8 开源工程系统 + §2.9 能力矩阵 + §3.2 蓝图 + §3.4 挑战。</li>
+          </ul>
+        </div>
+      </details>
+    </section>
+
+    <!-- ================= 第一部分 ================= -->
+    <section class="doc" id="p1">
+      <header>
+        <div class="sec-kicker">Part 01</div>
+        <h2>第一部分 · 它是什么，站在哪里</h2>
+        <p class="sec-lead">先厘清它到底是什么、与已有事物的分界线在哪里，再看它在知识管理与 AI 栈里的生态位，最后落到六个应用领域。这一部分的结论决定后面所有讨论的口径。</p>
+      </header>
+
+      <div class="takeaway">
+        <div class="icon">💡</div>
+        <div>
+          <span class="label">人话结论</span>
+          <p>自我感知知识库和普通知识库的差别，不在于"装了什么知识"，而在于<strong>它对自己装了什么这件事，有一份可以查、可以推理、可以对外说明的记录，并且会按这份记录改变行为</strong>——该说不知道就说不知道，该去查就去查，该提示过时就提示过时。</p>
+        </div>
+      </div>
+
+      <h3 id="p1-what">1.1 它是什么：从"内容"到"内容 + 状态"</h3>
+
+      <p>要理解这个概念，最有效的方式不是从定义出发，而是从一个具体故障出发。</p>
+
+      <p>设想一个企业知识助手。操作员问：<em>"压力传感器报警后，多久必须介入？"</em> 系统检索到 2019 年的 HSE 政策文件，回答"4 小时内"。但 2024 年的一份站点备忘录已把要求改为 30 分钟。系统没有说谎——它忠实引用了它找到的文档。问题在于：<strong>它不知道那份 2019 年的文件已经被取代，也不知道库里存在一条与之冲突的规定</strong>。它对自己所持知识的"状态"一无所知。有厂商的产品页直接以这一场景为切入口，并给出行业内流传的量级估计：企业信息中有 80–90% 是非结构化文档，而在很多组织里 60–70% 的已归档知识已经过时、重复或事实上无法被找到。</p>
+
+      <p>把这个故障抽象出来，它包含四个互相独立的问题：</p>
+
+      <div class="grid c4">
+        <div class="card">
+          <div class="head"><span class="num-badge">A</span><h4>边界</h4></div>
+          <p>我到底知不知道这件事？能力边界在哪里？</p>
+        </div>
+        <div class="card">
+          <div class="head"><span class="num-badge">B</span><h4>置信</h4></div>
+          <p>我对这个答案有多确定？这个确定度是否可信？</p>
+        </div>
+        <div class="card">
+          <div class="head"><span class="num-badge">C</span><h4>来源</h4></div>
+          <p>这条知识从哪来？是我读到的、推断的，还是编出来的？</p>
+        </div>
+        <div class="card">
+          <div class="head"><span class="num-badge">D</span><h4>时效与冲突</h4></div>
+          <p>它现在还有效吗？库里有没有与之矛盾的说法？</p>
+        </div>
+      </div>
+
+      <p>传统知识库对这四问的答案都是"不处理"：它存储真命题，并在开放世界假设（Open-World Assumption, OWA）下运行——<strong>没被记录的事实既不是真也不是假，只是未知</strong>。而"未知"本身没有任何表示形式，于是系统的知识边界是不可见的暗物质。</p>
+
+      <div class="hl">
+        <span class="label">关键认识</span>
+        <p>自我感知知识库的本质增量，是在知识内容之外维护<strong>一个平行的、可被查询与推理的知识状态层（knowledge-state layer）</strong>。这一层不是内容的附属标签，而是具有独立推理能力的结构：它要能回答"我在这个主题上的知识完整度如何"这类二阶问题。</p>
+      </div>
+
+      <p>一个有用的类比：传统知识库像一本权威但沉默的百科全书；自我感知知识库像一位<strong>知道自己知识边界的专家</strong>。差别不在于谁知道得多，而在于后者在回答之前，会先说"这部分我不熟"或"这个话题我上周刚更新过，但那条旧记录我还没来得及删"。</p>
+
+      <h3 id="p1-features">1.2 六大核心特征</h3>
+
+      <p>把文献中分散的能力主张收敛整理，一个系统要被称为"自我感知"，需要同时具备以下六项中的多数。这六项也构成后续"能力矩阵"（<a href="#p2-matrix">§2.9</a>）的评价维度。</p>
+
+      <div class="tablewrap">
+        <table>
+          <caption>表 1-1 · 自我感知知识库的六大核心特征</caption>
+          <thead>
+            <tr><th style="width:8%">编号</th><th style="width:20%">特征</th><th style="width:44%">含义</th><th style="width:28%">对应理论</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>F1</strong></td>
+              <td><strong>知识边界自表征</strong></td>
+              <td>系统持有一份关于"我知道什么、不知道什么"的显式表示，而非依赖输出概率间接推测。学术上形式化为三层边界：<strong>通用知识边界</strong>（人类可表达的全部知识）、<strong>参数化知识边界</strong>（真正写进模型的）、<strong>外显知识边界</strong>（能被成功表达出来的）</td>
+              <td>KWIK 的 ⊥ 信号；LLM 知识边界四分类</td>
+            </tr>
+            <tr>
+              <td><strong>F2</strong></td>
+              <td><strong>不确定性量化与校准</strong></td>
+              <td>区分<strong>偶然不确定性</strong>（问题本身有歧义、数据有噪声）与<strong>认知不确定性</strong>（知识缺失）。前者应追问澄清，后者应触发检索。校准度用期望校准误差（ECE）、Brier 分数等衡量，而非只看准确率</td>
+              <td>概率校准；信号检测论；MUSE</td>
+            </tr>
+            <tr>
+              <td><strong>F3</strong></td>
+              <td><strong>来源与谱系追溯</strong></td>
+              <td>每条知识携带来源标签：直接观察 / 检索获得 / 推理合成 / 外部继承；并附获取时间、验证状态（未验证 / 独立确认 / 存在矛盾）、任务边界标记。这让系统能区分"我读到的"与"我猜的"</td>
+              <td>TMS 的 justification；知识基础设施成熟度模型</td>
+            </tr>
+            <tr>
+              <td><strong>F4</strong></td>
+              <td><strong>自我反思与修正</strong></td>
+              <td>能检测自身内部的不一致（两条冲突事实、推理链中的逻辑谬误），并触发纠正：重新评估来源、寻找更可靠信息、或重跑推理。错误被视为学习信号，而非仅需掩盖的输出瑕疵</td>
+              <td>Meta-Cognitive Knowledge Editing；Reflexion 式循环</td>
+            </tr>
+            <tr>
+              <td><strong>F5</strong></td>
+              <td><strong>学习自知</strong>（知道何时该学）</td>
+              <td>知道自己的未知区域在哪里，并优先在未知处探索，而不是在已知处反复优化。这是 KWIK 的核心思想：把"我不知道"变成一个<strong>数量有上界</strong>的显式信号，从而驱动高效的主动学习与探索</td>
+              <td>KWIK / KWIK-Rmax；主动学习</td>
+            </tr>
+            <tr>
+              <td><strong>F6</strong></td>
+              <td><strong>时效与冲突治理</strong></td>
+              <td>知识是有生命周期的：需要责任人、复审周期、退役机制。核心命题是<strong>"过时的内容比缺失的内容更危险，因为它仍然被信任"</strong>。同时要能主动检测同一事实的多个矛盾版本并仲裁</td>
+              <td>知识治理；双时态知识图谱；完备性评估</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="p1-generations">1.3 三代知识系统的分野</h3>
+
+      <p>把知识系统按"它对自己的知识持有什么"划代，可以看出自我感知知识库处在第三代。第一代存储内容；第二代加入检索与语义匹配；第三代在内容之外再维护一层状态。</p>
+
+      <div class="tablewrap">
+        <table>
+          <caption>表 1-2 · 三代知识系统的能力分野</caption>
+          <thead>
+            <tr><th style="width:16%">能力维度</th><th style="width:28%">第一代 · 内容中心</th><th style="width:28%">第二代 · 检索增强</th><th style="width:28%">第三代 · 自我感知</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>核心问题</strong></td><td>知识存在哪里</td><td>哪条知识最相关</td><td>这批证据够不够格被使用</td></tr>
+            <tr><td><strong>知识边界</strong></td><td>不可见</td><td>靠输出概率间接推测</td><td>显式表示，可查询可推理</td></tr>
+            <tr><td><strong>不确定性</strong></td><td>不处理</td><td>事后校准，只调输出层</td><td>区分偶然与认知，驱动不同动作</td></tr>
+            <tr><td><strong>来源</strong></td><td>不记录</td><td>记录引用，但不区分来源类型</td><td>来源类型 + 时间 + 验证状态 + 任务边界</td></tr>
+            <tr><td><strong>时效与冲突</strong></td><td>不处理</td><td>按相关性排序，冲突被一并召回</td><td>双时态记录，事实取代而非覆盖</td></tr>
+            <tr><td><strong>输出</strong></td><td>条目</td><td>排序</td><td><strong>判决</strong>——含"不回答"</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="p1-definition">1.4 一句话定义</h3>
+
+      <div class="defcard">
+        <span class="tag">工作定义 · Working Definition</span>
+        <blockquote>
+          自我感知知识库是一个知识系统，它在知识内容之外持续维护一份关于<strong>自身知识状态</strong>的显式模型——知道什么、不知道什么、有多确信、从何而来、是否仍然有效——并以此模型驱动自己的检索、追问、弃权与修正行为。
+        </blockquote>
+        <p class="sub">英文表述：<em>A self-aware knowledge base maintains an explicit, queryable model of its own epistemic state — what it knows, what it does not, how confidently, from where, and whether it is still valid — and uses that model to govern its own retrieval, inquiry, abstention, and revision behaviour.</em></p>
+      </div>
+
+      <p>这个定义有三个刻意的选择，值得说明：</p>
+
+      <ol>
+        <li><strong>它要求"显式"。</strong> 隐式地通过输出概率反映不确定性不算数。原因很实际：不可检查的东西无法审计、无法授权、无法解释给用户。学术上这一点被反复强调——自我知识必须"以可被审查和解释的形式编码"，并且"能够被智能体自己明示地展示出来"。</li>
+        <li><strong>它要求"驱动行为"。</strong> 只测量不行动的系统是仪表盘，不是知识库。这里的因果关系是硬性的：状态层的变化必须导致行为的改变，否则它只是一份没人看的元数据。</li>
+        <li><strong>它不要求"意识"。</strong> 这一点必须划清。本报告讨论的是功能性的、可测量的工程属性，与"机器是否有主观体验"无关。2023 年底以来，学术界与公众的关注度已正式从"机器能否感受"转向"机器如何认知自身与世界"，判断依据是可量化的觉知能力，而非哲学意义上的意识。</li>
+      </ol>
+
+<figure id="fig-1-1">
+        <svg viewBox="0 0 680 300" role="img" aria-label="知识状态四象限图">
+          <defs>
+            <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#1f5fd0" stop-opacity="0.14"/>
+              <stop offset="100%" stop-color="#1f5fd0" stop-opacity="0.03"/>
+            </linearGradient>
+          </defs>
+          <!-- axes -->
+          <line x1="80" y1="250" x2="640" y2="250" stroke="#cbd2da" stroke-width="1.5"/>
+          <line x1="80" y1="250" x2="80" y2="30" stroke="#cbd2da" stroke-width="1.5"/>
+          <polygon points="640,250 632,246 632,254" fill="#cbd2da"/>
+          <polygon points="80,30 76,38 84,38" fill="#cbd2da"/>
+          <text x="646" y="254" font-size="11" fill="#6b7480" font-family="monospace">置信度 →</text>
+          <text x="62" y="26" font-size="11" fill="#6b7480" font-family="monospace" text-anchor="middle">实际</text>
+          <text x="62" y="38" font-size="11" fill="#6b7480" font-family="monospace" text-anchor="middle">正确</text>
+          <!-- quadrant mid lines -->
+          <line x1="360" y1="30" x2="360" y2="250" stroke="#e1e5ea" stroke-width="1" stroke-dasharray="4 4"/>
+          <line x1="80" y1="140" x2="640" y2="140" stroke="#e1e5ea" stroke-width="1" stroke-dasharray="4 4"/>
+          <!-- Q1: confident & correct -->
+          <rect x="368" y="38" width="264" height="94" rx="8" fill="#08795f" fill-opacity="0.07" stroke="#08795f" stroke-opacity="0.3"/>
+          <text x="382" y="62" font-size="12.5" font-weight="700" fill="#08795f">稳定已知</text>
+          <text x="382" y="80" font-size="10.5" fill="#3d4450">PAK · 无需检索，直接回答</text>
+          <text x="382" y="97" font-size="10.5" fill="#6b7480">已知的已知</text>
+          <!-- Q2: not confident but correct -->
+          <rect x="88" y="38" width="264" height="94" rx="8" fill="#a86204" fill-opacity="0.07" stroke="#a86204" stroke-opacity="0.3"/>
+          <text x="102" y="62" font-size="12.5" font-weight="700" fill="#a86204">犹豫的真知</text>
+          <text x="102" y="80" font-size="10.5" fill="#3d4450">PSK · 需提示/链式推理才能提取</text>
+          <text x="102" y="97" font-size="10.5" fill="#6b7480">已知的未知（假性）</text>
+          <!-- Q3: confident but wrong -->
+          <rect x="368" y="148" width="264" height="94" rx="8" fill="#c02a2a" fill-opacity="0.07" stroke="#c02a2a" stroke-opacity="0.3"/>
+          <text x="382" y="172" font-size="12.5" font-weight="700" fill="#c02a2a">过度自信的错误</text>
+          <text x="382" y="190" font-size="10.5" fill="#3d4450">幻觉高发区 · 最危险的一格</text>
+          <text x="382" y="207" font-size="10.5" fill="#6b7480">不知的已知（伪）</text>
+          <!-- Q4: not confident & wrong -->
+          <rect x="88" y="148" width="264" height="94" rx="8" fill="#1f5fd0" fill-opacity="0.07" stroke="#1f5fd0" stroke-opacity="0.3"/>
+          <text x="102" y="172" font-size="12.5" font-weight="700" fill="#1f5fd0">明确的未知</text>
+          <text x="102" y="190" font-size="10.5" fill="#3d4450">MSU / MAU · 应检索、追问或弃权</text>
+          <text x="102" y="207" font-size="10.5" fill="#6b7480">已知的未知（真）</text>
+          <!-- annotation -->
+          <text x="80" y="280" font-size="10" fill="#6b7480" font-family="monospace">自我感知知识库的全部工作：把每一格显式标注出来，并让右下→右上、左下→左上</text>
+        </svg>
+        <figcaption><b>图 1-1 · 知识状态四象限。</b>横轴是系统主观置信度，纵轴是客观正确性。自我感知的目标是把"犹豫的真知"（左下→左上，通过更好的检索与提示）与"过度自信的错误"（右下→右上，通过弃权与校准）都收敛到"稳定已知"。这个二分结构与 LLM 知识边界研究的四分类（PAK / PSK / MSU / MAU）是同构的。</figcaption>
+      </figure>
+
+      <p>这张四象限图也解释了为什么"幻觉"本质上是一个<strong>自我感知失败</strong>，而不只是知识缺失。系统落进"过度自信的错误"格，不是因为不知道，而是因为它<em>不知道自己不知道</em>。有研究直接指出：模型内部激活状态往往"知道"某陈述是假的，而生成文本却声称其为真——存在一条可被监测的内部幻觉信号。</p>
+
+      <h3 id="p1-neighbors">1.5 与相邻概念的边界划分</h3>
+
+      <p>这一小节是防混淆的。下列概念常被误当作自我感知知识库的同义词，但它们的边界是清晰的。</p>
+
+      <div class="tablewrap">
+        <table>
+          <caption>表 1-3 · 与相邻概念的边界划分</caption>
+          <thead>
+            <tr><th style="width:17%">相邻概念</th><th style="width:29%">它擅长什么</th><th style="width:27%">它的边界</th><th style="width:27%">与自我感知知识库的关系</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>RAG</strong><br><span class="meta">检索增强生成</span></td>
+              <td>把外部知识注入上下文，扩展"外显知识边界"，是弥补模型特定未知（MSU）最有效的手段</td>
+              <td>标准 RAG <strong>不判断是否需要检索</strong>，也不判断检索结果是否足够。它假设"检索到 = 可用"</td>
+              <td><span class="pill info">被增强方</span> 为 RAG 提供"何时检索、信多少"的判决信号；Self-RAG、SeaKR 是两者交汇的作品</td>
+            </tr>
+            <tr>
+              <td><strong>知识图谱</strong><br><span class="meta">KG</span></td>
+              <td>显式表示实体与关系，支持多跳推理与结构化查询，是"内容"的良好载体</td>
+              <td>经典 KG 只存正向知识，标注为"图"本身不携带可信度或来源；OWA 下缺席事实一律未知，形成"暗物质"问题</td>
+              <td><span class="pill info">承载方</span> 自我感知通常实现在 KG 之上（元层子图、双时态图谱），而非替代它</td>
+            </tr>
+            <tr>
+              <td><strong>元认知</strong><br><span class="meta">Metacognition</span></td>
+              <td>监控—控制框架：对认知过程本身进行监控，并据此调节行为</td>
+              <td>它是一个<strong>能力框架</strong>，不规定载体；可以作用于模型、智能体或知识系统</td>
+              <td><span class="pill info">理论母体</span> 自我感知知识库是元认知在知识系统上的一个特定实例化</td>
+            </tr>
+            <tr>
+              <td><strong>不确定性量化</strong><br><span class="meta">UQ</span></td>
+              <td>区分偶然/认知不确定性，给出可校准的置信度；工具包括深度集成、蒙特卡洛 dropout、贝叶斯方法</td>
+              <td>后验校准方法（温度缩放、直方图分箱）只能改善表面校准，<strong>无法捕捉结构性知识缺口</strong>——模型可以在验证集上校准良好，却在分布外样本上严重过度自信</td>
+              <td><span class="pill info">上游供给</span> UQ 提供度量，自我感知知识库提供"用这个度量做什么"</td>
+            </tr>
+            <tr>
+              <td><strong>知识编辑</strong><br><span class="meta">Knowledge Editing</span></td>
+              <td>在权重或记忆中定点更新事实（如 MEMIT），修正持续性内部错误</td>
+              <td>点式编辑只改内容，不涉及"我知道我改了哪些、改动在什么条件下适用、是否会影响无关事实"</td>
+              <td><span class="pill info">进化方向</span> 元认知知识编辑把边界监控与反思引入编辑过程，正是两者融合的产物</td>
+            </tr>
+            <tr>
+              <td><strong>智能体记忆系统</strong><br><span class="meta">Agent Memory</span></td>
+              <td>为无状态 LLM 提供跨会话持久化；分层（核心/召回/归档）、时序图、抽取式记忆等架构已成熟</td>
+              <td>优化目标是<strong>召回而非相关性</strong>，且通常不区分"我读到的"与"我合成的"；上下文层不打来源标签，导致智能体无法分辨活跃意图与考古沉积</td>
+              <td><span class="pill warn">重叠但不同</span> 记忆系统已实现部分自我管理机制（详见 <a href="#p2-opensource">§2.8</a>），但缺 epistemic primitive</td>
+            </tr>
+            <tr>
+              <td><strong>信念修正</strong><br><span class="meta">Belief Revision</span></td>
+              <td>AGM 框架给出信念集遇到新信息时的扩张、修正、收缩三算子及其理性公设</td>
+              <td>面向理想化的逻辑 agent，不处理噪声、冲突来源与大规模自然语言知识</td>
+              <td><span class="pill info">理论供给</span> 为"发现冲突后该删哪条"提供规范答案</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="box-warn">
+        <span class="label">最重要的一条边界</span>
+        <p><strong>自我感知知识库 ≠ 更聪明的 RAG。</strong> 更聪明的 RAG 仍在回答"哪条知识最相关"；自我感知知识库回答的是"这一批证据够不够格被用来回答这个问题，如果不够格，我该做什么"。前者的输出是排序，后者的输出是<strong>判决</strong>——包括"不回答"这个判决。</p>
+      </div>
+
+      <h3 id="p1-niche">1.6 生态位：一层横跨知识层与应用层的元层</h3>
+
+      <p>它不是一条独立赛道，而是<strong>横跨在"知识层"和"应用层"之间的元层</strong>：向上给智能体提供"我现在靠不靠得住"的判断，向下要求知识层提供来源与时效元数据。它填补的是 AI 栈里目前最尴尬的一处空白——<em>谁来判断这批知识够不够格被用来回答这个问题</em>。</p>
+
+<figure id="fig-2-1">
+        <svg viewBox="0 0 680 420" role="img" aria-label="AI 系统中的元层位置示意">
+          <!-- layer boxes -->
+          <rect x="40" y="24" width="600" height="58" rx="10" fill="#f1ebfd" stroke="#6d3fc4" stroke-opacity="0.35"/>
+          <text x="60" y="48" font-size="12.5" font-weight="700" fill="#6d3fc4">应用层 · 智能体与交互界面</text>
+          <text x="60" y="67" font-size="10.5" fill="#3d4450">对话助手 · 决策支持 · 研究助手 · 具身智能体 — 消费"可信度"信号来决定说什么</text>
+
+          <!-- meta layer (highlighted, spanning) -->
+          <rect x="24" y="100" width="632" height="96" rx="12" fill="#1f5fd0" fill-opacity="0.09" stroke="#1f5fd0" stroke-width="2"/>
+          <text x="46" y="126" font-size="13.5" font-weight="800" fill="#1f5fd0">元层 · 自我感知知识库（本报告讨论的对象）</text>
+          <g font-size="10" fill="#1f5fd0">
+            <rect x="44" y="140" width="118" height="22" rx="6" fill="#ffffff" stroke="#b9cdf3"/><text x="56" y="155" font-size="10">边界建模</text>
+            <rect x="170" y="140" width="118" height="22" rx="6" fill="#ffffff" stroke="#b9cdf3"/><text x="182" y="155" font-size="10">不确定性校准</text>
+            <rect x="296" y="140" width="118" height="22" rx="6" fill="#ffffff" stroke="#b9cdf3"/><text x="308" y="155" font-size="10">来源与谱系</text>
+            <rect x="422" y="140" width="118" height="22" rx="6" fill="#ffffff" stroke="#b9cdf3"/><text x="434" y="155" font-size="10">时效与冲突</text>
+            <rect x="548" y="140" width="96" height="22" rx="6" fill="#ffffff" stroke="#b9cdf3"/><text x="560" y="155" font-size="10">弃权策略</text>
+          </g>
+          <text x="46" y="182" font-size="10.5" fill="#3d4450">回答一个元问题：<tspan font-weight="700" fill="#1f5fd0">"当前这批证据，够不够格用来回答这个问题？"</tspan></text>
+
+          <!-- retrieval layer -->
+          <rect x="40" y="212" width="600" height="56" rx="10" fill="#e8f0fe" stroke="#1f5fd0" stroke-opacity="0.25"/>
+          <text x="60" y="236" font-size="12.5" font-weight="700" fill="#1f5fd0">检索与推理层 · RAG / 图检索 / 推理引擎</text>
+          <text x="60" y="255" font-size="10.5" fill="#3d4450">向量检索 · 关键词 · 知识图谱遍历 · 多跳推理 · 重排</text>
+
+          <!-- knowledge layer -->
+          <rect x="40" y="284" width="600" height="56" rx="10" fill="#e2f5ef" stroke="#08795f" stroke-opacity="0.3"/>
+          <text x="60" y="308" font-size="12.5" font-weight="700" fill="#08795f">知识层 · 知识库 / 知识图谱 / 文档语料</text>
+          <text x="60" y="327" font-size="10.5" fill="#3d4450">条目 · 本体 · 三元组 · 文档块 · 记忆片段 — 提供来源与时效元数据</text>
+
+          <!-- data layer -->
+          <rect x="40" y="356" width="600" height="46" rx="10" fill="#eaedf2" stroke="#cbd2da"/>
+          <text x="60" y="384" font-size="12.5" font-weight="700" fill="#3d4450">数据层 · 原始数据源</text>
+
+          <!-- arrows -->
+          <g stroke="#b9cdf3" stroke-width="1.5" fill="none">
+            <path d="M340 284 L340 268" marker-end="url(#ar)"/>
+            <path d="M340 212 L340 196" marker-end="url(#ar)"/>
+            <path d="M340 100 L340 84" marker-end="url(#ar)"/>
+          </g>
+          <!-- feedback arrow -->
+          <path d="M648 53 C 668 100, 668 160, 656 200" stroke="#6d3fc4" stroke-width="1.4" fill="none" stroke-dasharray="5 4"/>
+          <path d="M656 206 l-5 -8 l10 -1 z" fill="#6d3fc4"/>
+          <text x="596" y="400" font-size="9.5" fill="#6d3fc4" font-family="monospace">虚线：可观测信号回流（L4 自适应）</text>
+          <defs>
+            <marker id="ar" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" orient="auto">
+              <path d="M0,0 L7,3.5 L0,7 z" fill="#b9cdf3"/>
+            </marker>
+          </defs>
+        </svg>
+        <figcaption><b>图 2-1 · 元层在 AI 栈中的位置。</b>自我感知知识库不自带知识，也不自己做检索；它消费知识层的元数据、中介检索层的结果、向应用层输出可信度判断。虚线表示成熟度 L4 才具备的反馈闭环。</figcaption>
+      </figure>
+
+      <p>这个定位带来一个重要的架构后果：<strong>元层必须能跨层读取信号</strong>。它需要来自语言模型内部状态的不确定性信号（如中间层隐表示的离散程度）、来自检索层的证据覆盖情况、来自知识层的来源与时效标签。任何只依赖其中一层的方案，都会退化为第二代的"智能知识库"。</p>
+
+      <div class="box-ok">
+        <span class="label">对照案例</span>
+        <p>ACL 2025 的 SeaKR 正是这一架构直觉的具体实现：它从 LLM 中间层的隐状态提取"自我感知不确定性"（用 Gram 行列式衡量多次采样的一致性），并用这一个统一信号同时驱动三件事——<strong>何时检索</strong>、<strong>如何对检索结果重排</strong>、<strong>用哪种推理策略</strong>。这恰好演示了"元层统一信号驱动多层决策"的模式。</p>
+      </div>
+
+      <p>在知识管理生态里，它占据的是<strong>治理层（Governance Layer）</strong>：不生产内容，不检索内容，而是对内容的状态进行建模、审计与仲裁。这与数据世界里数据目录（Data Catalog）的位置完全对应，区别在于它面向非结构化知识，且必须支持机器消费。</p>
+
+      <p>这里有一个关键的行业判断：<strong>智能体放大了这笔历史欠债。</strong> 人类读者有经验，能分辨哪份文件可靠；而 AI 智能体不知道如何忽略一份过时文档，它会忠实而自信地把你交给它的混乱原样返回。有分析机构预计到 2026 年底将有 60% 的 AI 项目因数据质量问题被放弃。</p>
+
+      <h3 id="p1-cognition">1.7 认知坐标：把它放在"觉知"的哪一维</h3>
+
+      <p>2025 年 4 月的 AI Awareness 综述把"AI 觉知"拆成四个功能上相对独立、但相互支撑的维度，并明确指出：这与哲学意义上的"AI 意识"是两个不同的问题——前者是可量化的工程问题。</p>
+
+      <div class="grid c4">
+        <div class="card">
+          <div class="head"><span class="num-badge">①</span><h4>元认知</h4></div>
+          <p>"对思考的思考"。对自身认知过程进行监控—规划—评估的迭代。</p>
+          <p class="meta">成熟度：<span class="pill warn">中（监控强于调节）</span></p>
+        </div>
+        <div class="card">
+          <div class="head"><span class="num-badge">②</span><h4>自我觉知</h4></div>
+          <p>把自身作为认知对象：身份识别、知识边界感知、内在状态表征、跨情境一致性。</p>
+          <p class="meta">成熟度：<span class="pill bad">最薄弱</span></p>
+        </div>
+        <div class="card">
+          <div class="head"><span class="num-badge">③</span><h4>社会觉知</h4></div>
+          <p>感知与响应他者心智状态与社会规范，核心是心智理论（ToM）。</p>
+          <p class="meta">成熟度：<span class="pill warn">初级（表层模式匹配）</span></p>
+        </div>
+        <div class="card">
+          <div class="head"><span class="num-badge">④</span><h4>情境觉知</h4></div>
+          <p>追踪环境状态、意义建构与未来演化推演，含上下文自定位。</p>
+          <p class="meta">成熟度：<span class="pill ok">最高</span></p>
+        </div>
+      </div>
+
+      <p>该综述给出三条与本主题直接相关的实证判断：</p>
+
+      <ol>
+        <li><strong>自我觉知是最薄弱的一维。</strong> 大模型缺乏持久记忆与身份锚点，超过上下文长度后难以维持一致的"自我"；对自身的描述多为训练语料中的统计自指；<em>能"知道自身不知道"，但生成阶段易被概率采样覆盖</em>。</li>
+        <li><strong>能力涌现存在相变。</strong> ToM、自我纠错、策略性情境适应等能力常在特定参数规模或训练范式下突然跃升，而非线性增长——这意味着该方向存在临界点，投入可能在某个阈值后突然产生回报。</li>
+        <li><strong>评估体系有七种系统性瓶颈。</strong> 定义不清晰、维度混淆、缺乏纵向追踪、数据污染、标注者偏差、缺少统一基线、觉知能力只是下游任务的副产品而非显式优化目标。</li>
+      </ol>
+
+      <div class="hl">
+        <span class="label">坐标结论</span>
+        <p>用认知科学的语言说：<strong>自我感知知识库 = 把"自我觉知"这一最薄弱维度，从知识系统这一具体载体上做工程化落地。</strong>它不碰社会觉知，也不需要完整的情境觉知，只需要把"我作为知识持有者的边界与状态"这件事做扎实。</p>
+        <p>该综述还提出一个重要的治理区分：应鼓励<strong>校准型觉知</strong>（知晓自身能力边界），而对<strong>策略型觉知</strong>（知晓如何策略性达成目标）加以约束。自我感知知识库属于前者——这也是它相对"通用 AGI 自我意识"更容易获得伦理许可的原因。</p>
+      </div>
+
+      <h3 id="p1-problem">1.8 解决的核心问题</h3>
+
+      <p>把散落在各处的痛点收敛，它针对的是<strong>一个根问题及其四个派生症状</strong>：</p>
+
+      <div class="defcard">
+        <span class="tag">根问题</span>
+        <blockquote>知识与它的"状态"脱钩。</blockquote>
+        <p class="sub">系统持有内容，但不持有关于内容的元信息；于是无法区分"已知"与"误以为已知"，无法区分"当前有效"与"已被取代"，也无法区分"读到的"与"推断的"。结果是：<strong>能力的上限被可信度的下限锁死</strong>。</p>
+      </div>
+
+      <div class="grid c2">
+        <div class="card">
+          <div class="head"><span class="num-badge">S1</span><h4>幻觉率无法收敛</h4></div>
+          <p>模型在超出知识边界时仍以高置信度输出。而区分"参数中确实没有"与"有但没被正确引出"本身就需要边界建模——当前基准大多只测原始性能，而非边界本身。</p>
+        </div>
+        <div class="card">
+          <div class="head"><span class="num-badge">S2</span><h4>检索资源浪费</h4></div>
+          <p>无差别检索把噪声引入上下文，反而损害回答质量。学术侧已有明确收益：DH-ICL 在 LLaMA 上用<strong>一半的检索次数</strong>达到与全量检索相当的性能，且无需额外训练。</p>
+        </div>
+        <div class="card">
+          <div class="head"><span class="num-badge">S3</span><h4>用户信任错配</h4></div>
+          <p>用户无法判断何时该信。模型表达过度自信，而真正需要的恰恰是"恰当的信任"——2025 年的 CERTA 系统专门传递经过自反思的确定度，以减少过度附和、在道德判断上表现审慎。</p>
+        </div>
+        <div class="card">
+          <div class="head"><span class="num-badge">S4</span><h4>知识资产持续腐化</h4></div>
+          <p>无人拥有的知识会腐烂，而腐烂的知识比缺失的知识更危险，因为它仍被信任。一个只增不减的知识库，正在不可信化的轨道上。</p>
+        </div>
+      </div>
+
+      <h3 id="p1-domains">1.9 六个应用领域</h3>
+
+      <p>同样的六个特征在不同领域的落点不同。下表给出每个领域最不可替代的那一条洞察，以及它的真实成熟度。</p>
+
+      <div class="tablewrap">
+        <table>
+          <caption>表 1-4 · 六个应用领域的定位、洞察与成熟度</caption>
+          <thead>
+            <tr><th style="width:15%">领域</th><th style="width:33%">核心场景</th><th style="width:32%">最不可替代的洞察</th><th style="width:20%">成熟度与障碍</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>医疗</strong></td>
+              <td>临床决策本质是在不完整、不精确、语言化的患者叙述上推理。症状常是"轻度乏力""高热"这类<em>程度性</em>而非布尔性表述</td>
+              <td>最有价值的不是更高准确率，而是<strong>让医生知道何时该信</strong>。第二是<strong>可追溯性</strong>：输出与临床判断不一致时，需追溯到是哪条规则、哪个权重造成分歧</td>
+              <td><span class="pill bad">价值极高，可实现性最低</span> 卡在责任归属；已发现加入人口统计学信息会翻转诊断预测</td>
+            </tr>
+            <tr>
+              <td><strong>法律</strong></td>
+              <td>规则"用尽"后转向先例推理，依赖类比；核心表示为<strong>因素</strong>（二值命题）与<strong>维度</strong>（有序取值集）</td>
+              <td>最危险的失败不是推理错，而是<em>编造不存在的判例或法条</em>。因此来源谱系（F3）在这里不是加分项，而是<strong>准入条件</strong></td>
+              <td><span class="pill warn">形式模型成熟，从未日常部署</span> 障碍是行业保守、计费模式，以及构建论辩系统需要大量常识知识</td>
+            </tr>
+            <tr>
+              <td><strong>企业知识管理</strong></td>
+              <td>故障链：2019 政策要求 4 小时 → 2024 备忘录改为 30 分钟 → 两者都在库中、无取代标注 → 助手检索到第一份并给出 92% 自信度</td>
+              <td>这不是检索质量问题，而是<em>知识状态缺失</em>。治理三件套：所有权<strong>挂到角色</strong>而非个人、复审周期<strong>按知识波动性</strong>设定、退役流程（最常被跳过的一步）</td>
+              <td><span class="pill ok">治理可先落地</span> 直接对应运营风险与 AI 项目存活率；仅 7% 组织自认数据"完全 AI 就绪"</td>
+            </tr>
+            <tr>
+              <td><strong>学术研究助手</strong></td>
+              <td>当前助手停留在检索与摘要。真正有价值的问题是：<strong>这个领域已经知道什么，边界在哪里，哪些重要问题还没人做？</strong></td>
+              <td>完备性研究方法可直接迁移：标记重捕法估计总体规模、基数抽取比对"应有 N 篇"、同侪推断识别"同类研究都做了 X 而这个方向没人做 X"</td>
+              <td><span class="pill bad">估计能力很弱</span> 科学领域召回率估计仅 0.1%–23.2%，真值稀缺。更适合作为研究方向而非产品特性</td>
+            </tr>
+            <tr>
+              <td><strong>教育</strong></td>
+              <td>智能辅导系统的代价：当系统全权控制节奏、序列与支持时，学生把元认知控制外包出去，失去发展自我调节能力的机会</td>
+              <td>最有启发的一条哲学转变：adaptivity 从"施加于学习者"转为<strong>"与学习者共同完成"</strong>。把系统对使用者的推断可见化，本身就是一种干预——用户看到系统对自己的判断，会改变自己的行为</td>
+              <td><span class="pill warn">机制清晰，但已暴露偏置</span> MetaCLASS：需要沉默时模型仅 4.2% 保持沉默（强迫性干预偏置）</td>
+            </tr>
+            <tr>
+              <td><strong>RAG 系统增强</strong></td>
+              <td>三个环节都有落点：<strong>何时检索</strong>（无差别检索注入噪声，输出概率触发又受过度自信偏置影响）、<strong>用哪些结果</strong>（高相关性 ≠ 高有用性）、<strong>怎么答</strong>（无法传达可信度）</td>
+              <td>投入产出比最高，因为收益<strong>可被精确计量</strong>：DH-ICL 用一半检索次数达到全量性能；SeaKR 多跳 QA 相对 IRCoT 提升约 9.5% F1</td>
+              <td><span class="pill ok">技术件齐备，当下最优切入点</span> 障碍是白盒依赖（多数高效果方法需访问隐状态）与阈值标定</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+<figure id="fig-5-1">
+        <svg viewBox="0 0 680 320" role="img" aria-label="六个应用领域的可实现性与价值定位">
+          <text x="0" y="14" font-size="11" font-weight="700" fill="#3d4450">按"可实现性 × 价值"定位六个应用领域</text>
+          <text x="0" y="30" font-size="9.5" fill="#6b7480">越靠右越容易落地　越靠上价值越高</text>
+
+          <!-- priority quadrant: drawn first, its label parked in the corner -->
+          <rect x="372" y="58" width="284" height="112" fill="#08795f" fill-opacity="0.07" stroke="#08795f" stroke-opacity="0.3"/>
+          <text x="648" y="76" font-size="10" font-weight="700" fill="#08795f" text-anchor="end">优先投入区</text>
+
+          <!-- axes -->
+          <line x1="80" y1="286" x2="656" y2="286" stroke="#cbd2da" stroke-width="1.5"/>
+          <line x1="80" y1="286" x2="80" y2="54" stroke="#cbd2da" stroke-width="1.5"/>
+          <polygon points="656,286 647,282 647,290" fill="#cbd2da"/>
+          <polygon points="80,54 76,62 84,62" fill="#cbd2da"/>
+          <text x="656" y="302" font-size="10" fill="#6b7480" font-family="monospace" text-anchor="end">可实现性 →</text>
+          <text x="92" y="50" font-size="10" fill="#6b7480" font-family="monospace">价值 ↑</text>
+
+          <!-- quadrant guides -->
+          <line x1="372" y1="58" x2="372" y2="286" stroke="#e1e5ea" stroke-dasharray="4 4"/>
+          <line x1="80" y1="170" x2="656" y2="170" stroke="#e1e5ea" stroke-dasharray="4 4"/>
+
+          <!-- medical -->
+          <circle cx="200" cy="88" r="6" fill="#c02a2a"/>
+          <text x="215" y="92" font-size="10.5" font-weight="700" fill="#c02a2a">医疗知识系统</text>
+          <text x="215" y="106" font-size="9" fill="#3d4450">价值极高，卡在责任归属与跨机构泛化</text>
+
+          <!-- legal -->
+          <circle cx="160" cy="148" r="6" fill="#a86204"/>
+          <text x="175" y="152" font-size="10.5" font-weight="700" fill="#a86204">法律知识库</text>
+          <text x="175" y="166" font-size="9" fill="#3d4450">形式模型成熟，但从未日常部署</text>
+
+          <!-- research -->
+          <circle cx="190" cy="226" r="6" fill="#6b7480"/>
+          <text x="205" y="230" font-size="10.5" font-weight="700" fill="#6b7480">学术研究助手</text>
+          <text x="205" y="244" font-size="9" fill="#3d4450">科学领域召回估计仅 0.1%–23.2%</text>
+
+          <!-- education -->
+          <circle cx="400" cy="200" r="6" fill="#6d3fc4"/>
+          <text x="414" y="204" font-size="10.5" font-weight="700" fill="#6d3fc4">教育系统</text>
+          <text x="414" y="218" font-size="9" fill="#3d4450">机制清晰，但已暴露强迫干预偏置</text>
+
+          <!-- enterprise -->
+          <circle cx="505" cy="140" r="6" fill="#1f5fd0"/>
+          <text x="491" y="144" font-size="10.5" font-weight="700" fill="#1f5fd0" text-anchor="end">企业知识管理</text>
+          <text x="491" y="158" font-size="9" fill="#3d4450" text-anchor="end">治理可先落地，与 AI 项目存活率挂钩</text>
+
+          <!-- rag -->
+          <circle cx="505" cy="100" r="6" fill="#08795f"/>
+          <text x="491" y="104" font-size="10.5" font-weight="700" fill="#08795f" text-anchor="end">RAG 增强</text>
+          <text x="491" y="118" font-size="9" fill="#3d4450" text-anchor="end">收益可精确计量，技术件齐备</text>
+        </svg>
+        <figcaption><b>图 5-1 · 六个应用领域的定位。</b>右上角是优先投入区。<strong>医疗与法律落在"高价值、低可实现性"象限</strong>——它们需要的不是更好的算法，而是责任框架与可审计性设计；<strong>RAG 增强与企业管理落在右上</strong>，是团队可以立即动手的方向。</figcaption>
+      </figure>
+
+      <div class="box-warn">
+        <span class="label">落地时必须解决的两个问题</span>
+        <p>① <strong>白盒依赖</strong>：SeaKR 与内部探针类方法都需要访问模型隐状态，无法直接用于闭源 API。DH-ICL 是少数仅依赖输入输出的方案，工程可迁移性更强。<br>
+        ② <strong>阈值标定</strong>：不确定性分数到"是否检索"的映射需要按模型、按任务重新标定。缺乏自动标定方法会把调参成本转嫁给运维。</p>
+      </div>
+    </section>
+
+    <!-- ================= 第二部分 ================= -->
+    <section class="doc" id="p2">
+      <header>
+        <div class="sec-kicker">Part 02</div>
+        <h2>第二部分 · 理论早已就位，工程刚刚赶上</h2>
+        <p class="sec-lead">这个方向不是凭空的工程构想。它有四条独立的学科根系，其中三条的成熟度远高于当前应用水平；而现有的实现各解决了问题的一部分，没有一条解决全部。</p>
+      </header>
+
+      <div class="takeaway">
+        <div class="icon">💡</div>
+        <div>
+          <span class="label">人话结论</span>
+          <p>自我感知知识库需要的理论，学术界<strong>已经分别提供了答案，只是从未被拼在一起</strong>：认识论回答"知道"是什么意思；元认知回答"监控—控制"的回路怎么搭；非单调推理回答"发现错误后怎么撤销旧信念"；KWIK 回答"我怎么有界地说出我不知道"。</p>
+        </div>
+      </div>
+
+      <h3 id="p2-map">2.1 四条线索与三个时期</h3>
+
+      <p>把四条线索按时间叠在一起，可以看到一个清晰的模式：<strong>理论基础在 1980 年代就已基本完备，此后二十年的进展主要在度量工具的精细化，而真正的融合只发生在最近两三年。</strong></p>
+
+<figure id="fig-3-2">
+        <svg viewBox="0 0 680 545" role="img" aria-label="自我感知知识库的理论谱系时间线">
+          <text x="0" y="16" font-size="11.5" font-weight="700" fill="#3d4450">理论谱系：四条学科线索 · 1963 – 2026</text>
+
+          <!-- phase bands, drawn first so they sit behind the content -->
+          <rect x="84" y="32" width="306" height="488" fill="#eaedf2" fill-opacity="0.45"/>
+          <rect x="394" y="32" width="132" height="488" fill="#e8f0fe" fill-opacity="0.45"/>
+          <rect x="530" y="32" width="134" height="488" fill="#f1ebfd" fill-opacity="0.45"/>
+          <text x="237" y="52" font-size="9.5" fill="#6b7480" text-anchor="middle">经典奠定期</text>
+          <text x="460" y="52" font-size="9.5" fill="#6b7480" text-anchor="middle">度量精细化期</text>
+          <text x="597" y="52" font-size="9.5" fill="#6b7480" text-anchor="middle">融合与落地期</text>
+
+          <!-- lane rules -->
+          <g stroke="#cbd2da" stroke-width="1">
+            <line x1="84" y1="140" x2="664" y2="140"/>
+            <line x1="84" y1="250" x2="664" y2="250"/>
+            <line x1="84" y1="360" x2="664" y2="360"/>
+            <line x1="84" y1="465" x2="664" y2="465"/>
+          </g>
+          <g font-size="9" fill="#6b7480" text-anchor="end">
+            <text x="76" y="143">哲学 · 认识论</text>
+            <text x="76" y="253">认知科学</text>
+            <text x="76" y="363">逻辑 · KR&amp;R</text>
+            <text x="76" y="468">机器学习 · AI</text>
+          </g>
+
+          <!-- lane 1 · philosophy -->
+          <circle cx="150" cy="140" r="4.5" fill="#6d3fc4"/>
+          <circle cx="330" cy="140" r="4.5" fill="#6d3fc4"/>
+          <circle cx="600" cy="140" r="4.5" fill="#1f5fd0"/>
+          <text x="160" y="118" font-size="9.5" font-weight="700" fill="#6d3fc4">1963 Gettier</text>
+          <text x="160" y="132" font-size="9" fill="#3d4450">JTB 不充分</text>
+          <text x="330" y="158" font-size="9.5" font-weight="700" fill="#6d3fc4" text-anchor="middle">1979 Goldman</text>
+          <text x="330" y="172" font-size="9" fill="#3d4450" text-anchor="middle">可靠主义 · 证成</text>
+          <text x="590" y="118" font-size="9.5" font-weight="700" fill="#1f5fd0" text-anchor="end">2025 知识边界综述</text>
+          <text x="590" y="132" font-size="9" fill="#3d4450" text-anchor="end">三层边界 · 四类知识</text>
+
+          <!-- lane 2 · cognitive science -->
+          <circle cx="200" cy="250" r="4.5" fill="#08795f"/>
+          <circle cx="430" cy="250" r="4.5" fill="#08795f"/>
+          <circle cx="600" cy="250" r="4.5" fill="#1f5fd0"/>
+          <text x="210" y="228" font-size="9.5" font-weight="700" fill="#08795f">1979 Flavell 元认知</text>
+          <text x="210" y="242" font-size="9" fill="#3d4450">监控—体验—知识</text>
+          <text x="430" y="268" font-size="9.5" font-weight="700" fill="#08795f" text-anchor="middle">1990 Nelson &amp; Narens</text>
+          <text x="430" y="282" font-size="9" fill="#3d4450" text-anchor="middle">元层 / 客体层回路</text>
+          <text x="590" y="228" font-size="9.5" font-weight="700" fill="#1f5fd0" text-anchor="end">2025 AI Awareness</text>
+          <text x="590" y="242" font-size="9" fill="#3d4450" text-anchor="end">四维觉知 · 自我觉知最弱</text>
+
+          <!-- lane 3 · logic and KR -->
+          <circle cx="160" cy="360" r="4.5" fill="#a86204"/>
+          <circle cx="330" cy="360" r="4.5" fill="#a86204"/>
+          <circle cx="450" cy="360" r="4.5" fill="#a86204"/>
+          <circle cx="615" cy="360" r="4.5" fill="#1f5fd0"/>
+          <text x="170" y="338" font-size="9.5" font-weight="700" fill="#a86204">1979–86 TMS / ATMS</text>
+          <text x="170" y="352" font-size="9" fill="#3d4450">justification 与信念撤销</text>
+          <text x="330" y="378" font-size="9.5" font-weight="700" fill="#a86204" text-anchor="middle">1985 Moore AEL</text>
+          <text x="330" y="392" font-size="9" fill="#3d4450" text-anchor="middle">信念模态算子 L</text>
+          <text x="450" y="338" font-size="9.5" font-weight="700" fill="#a86204" text-anchor="middle">1989 TMS ↔ AEL</text>
+          <text x="450" y="352" font-size="9" fill="#3d4450" text-anchor="middle">一一对应 · 强有根性</text>
+          <text x="610" y="378" font-size="9.5" font-weight="700" fill="#1f5fd0" text-anchor="end">2024 完备性综述</text>
+          <text x="610" y="392" font-size="9" fill="#3d4450" text-anchor="end">PCA / PCWA · 显著否定</text>
+
+          <!-- lane 4 · machine learning and AI systems -->
+          <circle cx="420" cy="465" r="4.5" fill="#1f5fd0"/>
+          <circle cx="545" cy="465" r="4.5" fill="#1f5fd0"/>
+          <circle cx="640" cy="465" r="4.5" fill="#6d3fc4"/>
+          <text x="420" y="443" font-size="9.5" font-weight="700" fill="#1f5fd0" text-anchor="middle">2008 KWIK</text>
+          <text x="420" y="457" font-size="9" fill="#3d4450" text-anchor="middle">⊥ 信号 · 有界无知</text>
+          <text x="545" y="483" font-size="9.5" font-weight="700" fill="#1f5fd0" text-anchor="middle">2023–25 校准 / 元认知</text>
+          <text x="545" y="497" font-size="9" fill="#3d4450" text-anchor="middle">ECE · meta-d′ · 内部探针</text>
+          <text x="615" y="443" font-size="9.5" font-weight="700" fill="#6d3fc4" text-anchor="end">2025–26 融合期</text>
+          <text x="615" y="457" font-size="9" fill="#3d4450" text-anchor="end">SeaKR · 元认知知识编辑</text>
+        </svg>
+        <figcaption><b>图 3-2 · 理论谱系时间线。</b>四个泳道分别为哲学/认识论、认知科学、逻辑与 KR&amp;R、机器学习与 AI 系统。背景三条色带对应三个时期：灰为经典奠定期，蓝为度量精细化期，紫为融合与落地期。<strong>带宽即该时期的工作密度——中间近二十年明显收窄，说明这个方向的关键瓶颈从来不是理论，而是缺少能承载这些理论的底层能力，直到大模型出现。</strong></figcaption>
+      </figure>
+
+      <p>四条线索各自解决一个子问题，对应关系如下：</p>
+
+      <div class="tablewrap">
+        <table>
+          <caption>表 2-1 · 四条理论线索与本主题的对应关系</caption>
+          <thead>
+            <tr><th style="width:16%">线索</th><th style="width:30%">它回答的问题</th><th style="width:32%">关键概念与人物</th><th style="width:22%">对应特征</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>认识论</strong><br><span class="meta">Epistemology</span></td>
+              <td>"知道"是什么意思，证成的质量为何需要被审视</td>
+              <td><strong>JTB 三元定义</strong>（知识 = 被证成的真信念）；<strong>Gettier 问题</strong>（1963）：存在"证成为真但凭运气为真"的案例；<strong>认知谦逊</strong>；<strong>证言认识论</strong>（来源可靠性是知识的构成要件）；知识的程度化</td>
+              <td>F1 边界、F3 来源的正当性来源</td>
+            </tr>
+            <tr>
+              <td><strong>元认知</strong><br><span class="meta">Metacognition</span></td>
+              <td>监控—控制的回路怎么搭</td>
+              <td><strong>两层结构</strong>（Nelson &amp; Narens 1990）：元层持有关于客体层的模型，客体层执行实际认知；<strong>监控流</strong>上行（"我现在不确定"），<strong>控制流</strong>下行（"那去检索一下"）；Flavell 1979 的元认知知识/体验/调节三分</td>
+              <td>F1–F3 属元层建模，F4–F6 属控制流动作</td>
+            </tr>
+            <tr>
+              <td><strong>非单调推理</strong><br><span class="meta">KR&amp;R</span></td>
+              <td>发现错误后怎么撤销旧信念</td>
+              <td><strong>TMS</strong>（Doyle 1979）为每个信念维护 justification；<strong>ATMS</strong>（de Kleer 1986）把信念与假设集绑定；<strong>默认逻辑</strong>（Reiter 1980）；<strong>AEL</strong>（Moore 1985）引入信念模态算子 L；<strong>AGM</strong>（1985）给出扩张/修正/收缩三算子</td>
+              <td>F4 自我修正、F6 冲突治理</td>
+            </tr>
+            <tr>
+              <td><strong>学习理论</strong><br><span class="meta">KWIK</span></td>
+              <td>我怎么有界地说出"我不知道"</td>
+              <td><strong>KWIK 协议</strong>（Li, Littman, Walsh &amp; Strehl 2008）：对每个输入要么给出 ε-精确预测，要么显式输出 ⊥，且 ⊥ 的次数必须有<strong>问题描述的多项式上界</strong>；<strong>KWIK-Rmax</strong> 把 ⊥ 作为探索的优先目标</td>
+              <td>F5 学习自知</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+<figure id="fig-3-1">
+        <svg viewBox="0 0 680 340" role="img" aria-label="元认知监控—控制回路">
+          <defs>
+            <marker id="m1" markerWidth="9" markerHeight="9" refX="4.5" refY="4.5" orient="auto">
+              <path d="M0,0 L9,4.5 L0,9 z" fill="#1f5fd0"/>
+            </marker>
+            <marker id="m2" markerWidth="9" markerHeight="9" refX="4.5" refY="4.5" orient="auto">
+              <path d="M0,0 L9,4.5 L0,9 z" fill="#6d3fc4"/>
+            </marker>
+          </defs>
+          <!-- meta level -->
+          <rect x="120" y="26" width="440" height="112" rx="12" fill="#f1ebfd" stroke="#6d3fc4" stroke-opacity="0.4" stroke-width="1.5"/>
+          <text x="140" y="50" font-size="12.5" font-weight="800" fill="#6d3fc4">元层 · Meta-level</text>
+          <text x="140" y="69" font-size="10.5" fill="#3d4450">持有关于客体层的模型：我知道什么、多确定、边界在哪</text>
+          <g font-size="9.5" fill="#6d3fc4">
+            <rect x="138" y="80" width="96" height="21" rx="5" fill="#fff" stroke="#d5c7f4"/><text x="148" y="94">边界模型 F1</text>
+            <rect x="242" y="80" width="106" height="21" rx="5" fill="#fff" stroke="#d5c7f4"/><text x="252" y="94">置信与校准 F2</text>
+            <rect x="356" y="80" width="96" height="21" rx="5" fill="#fff" stroke="#d5c7f4"/><text x="366" y="94">来源谱系 F3</text>
+            <rect x="460" y="80" width="86" height="21" rx="5" fill="#fff" stroke="#d5c7f4"/><text x="470" y="94">元认知知识</text>
+          </g>
+          <text x="140" y="122" font-size="10" fill="#6b7480">调节动作：规划 · 监控 · 调试 · 评估</text>
+
+          <!-- object level -->
+          <rect x="120" y="204" width="440" height="112" rx="12" fill="#e8f0fe" stroke="#1f5fd0" stroke-opacity="0.4" stroke-width="1.5"/>
+          <text x="140" y="228" font-size="12.5" font-weight="800" fill="#1f5fd0">客体层 · Object-level</text>
+          <text x="140" y="247" font-size="10.5" fill="#3d4450">执行实际的知识行为：检索、推理、生成</text>
+          <g font-size="9.5" fill="#1f5fd0">
+            <rect x="138" y="258" width="96" height="21" rx="5" fill="#fff" stroke="#b9cdf3"/><text x="148" y="272">检索与重排</text>
+            <rect x="242" y="258" width="106" height="21" rx="5" fill="#fff" stroke="#b9cdf3"/><text x="252" y="272">推理与生成</text>
+            <rect x="356" y="258" width="96" height="21" rx="5" fill="#fff" stroke="#b9cdf3"/><text x="366" y="272">弃权 / 追问</text>
+            <rect x="460" y="258" width="86" height="21" rx="5" fill="#fff" stroke="#b9cdf3"/><text x="470" y="272">知识写入</text>
+          </g>
+          <text x="140" y="300" font-size="10" fill="#6b7480">状态：内容 · 来源标签 · 时效戳 · 冲突标记</text>
+
+          <!-- monitoring flow -->
+          <path d="M96 250 C 60 200, 60 160, 96 108" stroke="#1f5fd0" stroke-width="2" fill="none" marker-end="url(#m1)"/>
+          <text x="14" y="196" font-size="10.5" font-weight="700" fill="#1f5fd0">监控流</text>
+          <text x="14" y="211" font-size="9.5" fill="#6b7480">"我不确定"</text>
+
+          <!-- control flow -->
+          <path d="M584 108 C 620 160, 620 200, 584 250" stroke="#6d3fc4" stroke-width="2" fill="none" marker-end="url(#m2)"/>
+          <text x="600" y="196" font-size="10.5" font-weight="700" fill="#6d3fc4">控制流</text>
+          <text x="600" y="211" font-size="9.5" fill="#6b7480">"去检索"</text>
+
+          <!-- external world -->
+          <rect x="240" y="166" width="200" height="26" rx="13" fill="#eaedf2" stroke="#cbd2da"/>
+          <text x="340" y="184" font-size="10.5" fill="#3d4450" text-anchor="middle">外部世界 / 用户 / 其他知识源</text>
+        </svg>
+        <figcaption><b>图 3-1 · 元认知监控—控制回路（依 Nelson &amp; Narens 1990 重绘并映射到本主题）。</b>左侧上行是监控流，右侧下行是控制流。自我感知知识库的全部六个特征，都可以在这张图上找到位置：F1–F3 属于元层的建模内容，F4–F6 属于控制流的动作。回路闭合是"自我感知"与"自我描述"的分界线。</figcaption>
+      </figure>
+
+      <div class="hl">
+        <span class="label">被忽略的最重要的一条</span>
+        <p>Reinfrank 等在 1989 年证明了 TMS 的 justification 与 AEL 公式的<strong>一一对应</strong>，并指出 <strong>TMS 是一个"勇敢的"（brave）推理器</strong>：当存在多组合法信念集时，它选择其中一组并继续行动，而不是做"谨慎的"推理——但它至少<em>记录了它是基于哪组假设在做决定</em>。</p>
+        <p>对比今天的 RAG 系统：它同样在做"选一组证据并据此回答"，但<strong>没有任何机制记录"我是基于哪组假设回答的"</strong>。这是一次真实的退步，也是可以直接补上的机会。</p>
+      </div>
+
+      <h3 id="p2-kwik">2.2 最被低估、也最直接可迁移的一条：KWIK</h3>
+
+      <p>KWIK 用一行协议，把"我知道我不知道"从一个哲学表述变成了一个可证明有界的计算信号。它不允许犯错；与 Mistake-Bound 不同，它<em>要求在犯错之前</em>就发出不确定信号。<strong>有界无知</strong>是它区别于"永远说不知道"的关键：无知是有额度且可被证明会耗尽的。</p>
+
+      <div class="codecap"><span>KWIK 协议的形式化</span><span class="lang">pseudo</span></div>
+      <pre><code><span class="tok-c"># KWIK 学习协议（Li, Littman, Walsh &amp; Strehl, 2008/2011）</span>
+<span class="tok-k">给定</span>: 输入集 X, 输出集 Y, 假设类 H ⊆ (X → Y), 精度参数 ε, δ
+
+<span class="tok-k">环境</span> 对抗性地选择真实函数 h* ∈ H
+<span class="tok-k">循环</span>:
+    环境对抗性地选择输入 x ∈ X, 并告知学习器
+    学习器输出 ŷ ∈ Y ∪ {⊥}
+
+    <span class="tok-k">若</span> ŷ = ⊥:                      <span class="tok-c"># 显式声明"我不知道"</span>
+        获得观测 z (可能含噪)          <span class="tok-c"># 这是唯一的获取监督信号的机会</span>
+        更新内部模型
+    <span class="tok-k">否则</span>:                           <span class="tok-c"># 做了预测，就必须正确</span>
+        <span class="tok-k">若</span> ‖ŷ − h*(x)‖ &gt; ε:
+            整轮运行判定为失败           <span class="tok-c"># 概率必须 ≤ δ</span>
+
+<span class="tok-k">要求</span>: {⊥ 的总输出次数} ≤ B(ε, δ)，B 应为 1/ε、1/δ 与
+      描述 H 的参数的多项式 —— 且该界即使在 h* ∉ H 时仍成立</code></pre>
+
+      <p>翻译成知识库的语言，它说的是：<strong>一个自我感知的知识系统，其"我不知道"必须是可数的、有上界的，并因此可以被当作探索的调度信号。</strong> 这与当代系统"随时可以含糊其辞"的行为形成了清晰对照。</p>
+
+      <p>经典示例是成本向量导航：朴素做法用回归估计权重 <code>ŵ</code> 后永远选看起来最优的路径，结果<em>可能永远找不到真正的最优路径</em>；而 KWIK 做法只判断"这条边的成本能否从已有数据推出"，若某条边的成本向量与已见向量<strong>线性无关</strong>，它<strong>知道自己的成本不可知</strong>，于是主动走这条路径去观测。结论是：任何猜测权重向量的算法都可能永远找不到最优路径，而用线性代数区分"已知/未知"的算法在 d 维问题上选错路径的次数不超过 d 次。</p>
+
+      <p><strong>局限（也是研究机会）</strong>：① 当前假设真函数存在于学习器的假设类中（realizable case），尚未扩展到 agnostic 情形；② 尚未迁移到深度网络等非线性架构。这两条限制正是 <a href="#p3-opportunities">§3.3</a> 中的两个具体选题。</p>
+
+      <h3 id="p2-completeness">2.3 完备性评估：让知识库知道自己缺什么</h3>
+
+      <p>如果一个知识库不知道自己缺什么，它就无法规划如何补全。这一支专门研究"如何让知识库知道自己有多完整"，主要技术路线如下。</p>
+
+      <div class="tablewrap">
+        <table>
+          <caption>表 2-2 · 知识库完备性评估的主要技术路线（依 Razniewski 等, ACM CSUR 2024）</caption>
+          <thead>
+            <tr><th style="width:22%">技术路线</th><th style="width:40%">做法</th><th style="width:38%">工程含义 / 局限</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>预测式召回评估</strong></td>
+              <td>借用生态学的<em>标记重捕法</em>（把编辑视为"捕获"，估计总体规模）；用<em>本福特定律</em>检测长尾缺失；用统计密度估计器</td>
+              <td>不需要外部真值即可估计缺口。局限：依赖分布假设，跨域迁移效果不稳定</td>
+            </tr>
+            <tr>
+              <td><strong>基数抽取</strong></td>
+              <td>识别"计数谓词"（如 <code>numberOfChildren</code>）并与实际列表（<code>hasChild</code>）比对，差值即缺口</td>
+              <td>直接、可解释；但需要库中存在计数信息，且文本中的计数抽取难度高（挑战赛顶级模型仅达 69% F1）</td>
+            </tr>
+            <tr>
+              <td><strong>相对召回</strong></td>
+              <td>不追求绝对真值，而是把知识库与其他结构化源或大型文本语料对比，得出相对覆盖率</td>
+              <td>实用、可规模化；但结论是"相对"的，无法回答"还差多少"</td>
+            </tr>
+            <tr>
+              <td><strong>显著否定的识别</strong></td>
+              <td>基于<em>同侪推断</em>：与相似实体对比，找出显著缺席的属性。例如"绝大多数高知名度物理学家都得过某奖，只有他没有"</td>
+              <td>解决了"负事实无穷而无法穷举"的问题，只保留有价值的否定信息，报告精度可达 91%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>该研究提出的两个假设，对理解知识库的自我认知极有帮助：<strong>部分完备性假设（PCA）</strong>——若某主体在某个谓词上至少有一个值，则该列表比完全为空的情况更可能完整，这是从沉默数据中提取"完备性信号"的核心启发式；<strong>部分封闭世界假设（PCWA）</strong>——在已知完备的区域采用封闭世界（缺席即为假），在未知完备的区域保持开放，这是当代最务实的折中方案。</p>
+
+      <div class="box-warn">
+        <span class="label">LLM 悖论</span>
+        <p>研究指出了一个尖锐的悖论：<strong>LLM 擅长抽取单个事实，却在计数和否定上表现糟糕。</strong> 这说明"知道事实"与"知道事实的边界"是两种根本不同的能力——而后者恰恰无法通过扩大规模自动获得。这为自我感知知识库作为独立研究方向提供了最有力的论证。</p>
+      </div>
+
+      <h3 id="p2-selfaware">2.4 自我意识：可直接当作设计约束的三条件</h3>
+
+      <p>这里必须做一次严格切割：<strong>本报告讨论的是"显式自我意识"在工程上可实现的那部分，与主观体验无关。</strong> Schubert 在 2004 年提出的显式自我意识三条件，可以直接当作设计约束：</p>
+
+      <blockquote>
+        <p>显式自我意识在人工智能体中，除了预设上述类人能力之外，还要求：(i) 自我知识以易于审查和解释的形式编码；(ii) 它能被智能体自己明示出来，最好通过日常语言；(iii) 它服从与其他所有知识相同的推理过程，即它不是被隔离的。</p>
+        <cite>Lenhart Schubert, <em>Some KR&amp;R Requirements for Self-Awareness</em>, 2004</cite>
+      </blockquote>
+
+      <ul>
+        <li>① <strong>可检查</strong> → 拒绝"黑箱置信分"，要求结构化的状态表示；</li>
+        <li>② <strong>可明示</strong> → 系统必须能对外说出自己的判断依据；</li>
+        <li>③ <strong>不隔离</strong> → 知识状态必须与内容知识共享同一推理机制，而非外挂的独立模块。</li>
+      </ul>
+
+      <p>Schubert 还指出自我意识具有<strong>"自举"潜力</strong>：可驱动元控制、错误恢复、基于感知到的知识缺口的定向学习，以及自动认识推理。该文另有一个对工程直接有用的判断：某些基于闭合假设的非单调推理，可以被<strong>基于显式自我知识的单调推理替代</strong>。</p>
+
+      <h3 id="p2-others">2.5 处理不确定与冲突的其他形式工具</h3>
+
+      <div class="grid c2">
+        <div class="card">
+          <div class="head"><span class="num-badge">✦</span><h4>定性条件逻辑与排序函数</h4></div>
+          <p>现实医学知识充满"若 A 则<em>通常</em> B"这类规则，经典逻辑会在遇到例外时产生矛盾。定性条件逻辑把规则编码为条件 <code>(B|A)</code>，并用<strong>排序函数</strong>为每个可能世界打分——违反的规则越多、越重，该世界越不可信。</p>
+          <p>收益：① 允许从矛盾的知识库中推出最合理的结论；② 允许修正已推出的结论；③ 可以区分谨慎、弱谨慎、轻信等多种推理策略。</p>
+          <p class="meta">典型应用：疟疾与镰状细胞基因的医学推理——单拷贝携带者通常不患重症疟疾，这一例外通过排序函数自然处理</p>
+        </div>
+        <div class="card">
+          <div class="head"><span class="num-badge">✦</span><h4>形式论辩框架</h4></div>
+          <p>Dung（1995）的抽象论辩框架把推理建模为<strong>论据集合 + 攻击关系</strong>，通过"完整扩张""有根扩张"等语义确定哪些论据可被接受。</p>
+          <p>在规范冲突且无法适用优先原则（上位法优先、新法优先、特别法优先）时，<strong>怀疑式（skeptical）方法</strong>通常更合适。</p>
+          <p class="meta">价值：当知识库内部出现冲突时，它提供了"不靠打分、而靠结构"的仲裁机制，且决策过程可被完整解释</p>
+        </div>
+      </div>
+
+      <h3 id="p2-calibration">2.6 校准与二阶精度：怎么度量"自我感知"</h3>
+
+      <div class="grid c2">
+        <div class="card">
+          <div class="head"><span class="num-badge">◇</span><h4>概率校准与评分规则</h4></div>
+          <p>一个预测系统被称为"校准"的，当它说"置信度 0.8"的那些预测中，实际约有 80% 正确。度量包括期望校准误差（ECE）、Brier 分数。正确评分规则保证诚实报告置信度是最优策略。</p>
+          <p><strong>关键局限</strong>：后验校准方法（温度缩放、直方图分箱）只调整输出层，<em>不触及产生概率的内部表示</em>。因此模型可以在验证集上校准良好，却在分布外样本上严重过度自信。这直接导致了对<strong>内在不确定性估计</strong>的需求——把不确定性估算嵌入架构，而非事后补丁。</p>
+          <p class="meta">关联：为 F2 提供度量语言，但单独使用不足以支撑 F1</p>
+        </div>
+        <div class="card">
+          <div class="head"><span class="num-badge">◇</span><h4>信号检测论与二阶精度</h4></div>
+          <p>type-2 信号检测论衡量"模型自报的'我知道'与实际正确性之间的相关度"，核心指标是 meta-d′。它把元认知敏感性从单纯的任务能力中分离出来。</p>
+          <p>相关指标：type-2 ROC 曲线下面积、高置信错误率。有研究提出<strong>解耦的元认知分数</strong>——把"失败预测"与"任务准确率"分开计算，从而得到一个与模型无关的自我监控度量。</p>
+          <p class="meta">关联：这是评测 F1/F2 最严格的方法学工具，但当前研究多用定性证据，缺乏大规模人类基线对照</p>
+        </div>
+      </div>
+
+      <h3 id="p2-symbolic">2.7 古典符号系统：自我感知的"前世"</h3>
+
+      <p>这些系统出现在"知识库"这个词还没有和大模型绑定的年代。它们已经实现了本概念的若干核心机制，值得重新审视。</p>
+
+      <div class="tablewrap">
+        <table>
+          <caption>表 2-3 · 古典符号系统的自我感知能力</caption>
+          <thead>
+            <tr><th style="width:14%">系统</th><th style="width:10%">年代</th><th style="width:30%">实现了什么</th><th style="width:22%">技术</th><th style="width:24%">局限</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>TMS</strong><br><span class="meta">Doyle</span></td>
+              <td>1979</td>
+              <td>为每个信念维护 justification；新信息到来时按依赖关系撤销受影响结论；依赖导向回溯</td>
+              <td>证成网络（justification network）+ 信念节点标签（IN / OUT）</td>
+              <td>只处理命题化知识；justification 需人工构造；无学习能力</td>
+            </tr>
+            <tr>
+              <td><strong>ATMS</strong><br><span class="meta">de Kleer</span></td>
+              <td>1986</td>
+              <td>把信念与假设集绑定，支持在多个假设环境下并行推理；同一命题可在不同环境中被接受或拒绝</td>
+              <td>环境（environment）+ 标签（label）机制</td>
+              <td>计算开销随假设数指数增长；实际部署罕见</td>
+            </tr>
+            <tr>
+              <td><strong>MYCIN</strong><br><span class="meta">斯坦福</span></td>
+              <td>1970s</td>
+              <td>医学诊断专家系统；用确定性因子（certainty factor）表达规则的可信度并结合证据</td>
+              <td>产生式规则 + CF 代数</td>
+              <td>CF 缺乏严格的概率语义，组合结果难以解释；体系封闭，无法学习</td>
+            </tr>
+            <tr>
+              <td><strong>Cyc</strong><br><span class="meta">Lenat</span></td>
+              <td>1984–</td>
+              <td>迄今最大规模的通用常识知识库尝试，含微理论（microtheory）机制——知识被分割到带上下文假设的分区中</td>
+              <td>CycL 表示语言 + 推理引擎 + 微理论分区</td>
+              <td>人工构建成本极高、扩展性受限；微理论要求显式声明适用范围，实践中难以维护</td>
+            </tr>
+            <tr>
+              <td><strong>描述逻辑<br>不一致性调试</strong></td>
+              <td>1990s–</td>
+              <td>检测本体中的逻辑矛盾并生成最小冲突集与解释，指导修复</td>
+              <td>Tableau 推理、最小不可满足子集（MUS）、公理定位</td>
+              <td>面向一致但完备性未知的本体；无法处理概率化与自然语言知识</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="p2-papers">2.8 学术前沿与开源工程系统（2023–2026）</h3>
+
+      <p>学术侧的工作可以按"它处理自我感知的哪一段"分成四组；工程侧则有一支已经悄悄实现了本概念大部分机制的记忆框架。逐项对照如下。</p>
+
+      <div class="tablewrap">
+        <table>
+          <caption>表 2-4 · 边界检测与不确定性估计方向的主要工作</caption>
+          <thead>
+            <tr><th style="width:19%">工作</th><th style="width:27%">实现了什么</th><th style="width:27%">技术路线</th><th style="width:27%">局限</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>SeaKR</strong><br><span class="meta">ACL 2025</span></td>
+              <td>用统一的不确定性信号同时驱动三件事：何时检索、如何重排、选哪种推理策略。多跳 QA 上相对 DRAGIN 提升约 6% F1，相对 IRCoT 提升约 9.5%</td>
+              <td>从 LLM 中间层（L/2）提取 EOS token 的隐表示，采样 k=20 次，用归一化 Gram 矩阵的<strong>行列式</strong>作为"自我感知不确定性"分数</td>
+              <td>需要白盒访问内部状态；采样 20 次要付出推理成本；行列式在高维下的数值稳定性与阈值标定尚不清晰</td>
+            </tr>
+            <tr>
+              <td><strong>DH-ICL</strong><br><span class="meta">ACL 2025 Findings</span></td>
+              <td>把知识边界识别重新定义为"结构化模式学习"。在 LLaMA 上仅用<strong>一半的检索次数</strong>达到与全量检索相当的性能，且无需额外训练</td>
+              <td>检索<em>相似历史查询</em>作为高置信的上下文示例，引导模型判断当前查询是否越界；并用历史响应 logits 的偏差做校准</td>
+              <td>依赖历史查询的积累（冷启动期效果受限）；结论能否迁移到开放生成任务未知</td>
+            </tr>
+            <tr>
+              <td><strong>KBD</strong><br><span class="meta">Knowledge Boundary Discovery</span></td>
+              <td>用强化学习自动探索 LLM 的知识边界，生成"能自信回答"与"不能回答"两类问题集，与人工基准可比</td>
+              <td>把探测建模为 POMDP：隐藏状态是"界内/界外"，动作是生成递进问题，奖励是熵下降。用<strong>响应熵的双峰分布</strong>划定边界</td>
+              <td>把 LLM 当作环境需要大量交互查询；熵阈值在不同模型间需重新标定；对提示分布敏感</td>
+            </tr>
+            <tr>
+              <td><strong>LLM 知识边界综述</strong><br><span class="meta">ACL 2025</span></td>
+              <td>该领域最完整的概念框架：三层边界（通用 / 参数化 / 外显）+ 四类知识（PAK / PSK / MSU / MAU），并把缓解手段按代价与有效性归纳</td>
+              <td>文献综述与框架化，非具体系统</td>
+              <td>自身指出的空白：多数基准只测原始性能而非边界本身；内部探针跨架构泛化性差；长文本生成中的边界定义仍是开放问题</td>
+            </tr>
+            <tr>
+              <td><strong>SelfAware</strong><br><span class="meta">Yin 等, 2023</span></td>
+              <td>评测模型对"超出知识范围"或"本身无确定答案"的问题能否表达恰当置信</td>
+              <td>构建含不可答问题的基准，测模型的置信自评</td>
+              <td>不可答问题的构造带主观性；易受训练语料污染；缺乏纵向追踪</td>
+            </tr>
+            <tr>
+              <td><strong>内部激活探针</strong><br><span class="meta">多项工作</span></td>
+              <td>证明模型内部激活往往"知道"某陈述为假，而生成文本却声称其为真——存在可被检测的"幻觉信号"</td>
+              <td>训练线性探针，在隐状态空间中分离"知/不知"</td>
+              <td>探针跨域泛化差（从历史迁移到医学即失效）；需白盒访问；探针是外挂模块，与生成过程未打通</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="box-warn">
+        <span class="label">这一组的共同局限</span>
+        <p>六项工作中有三项依赖<strong>白盒访问</strong>（内部隐状态或探针），这意味着它们无法直接用于闭源模型或 API 场景。同时所有工作都把"边界检测"当作终点，<em>没有人接着回答"检测出来之后怎么治理"</em>。检测与治理之间的断层，就是 <a href="#p3-gaps">§3.1</a> 要讨论的第一个大缺口。</p>
+      </div>
+
+      <div class="tablewrap">
+        <table>
+          <caption>表 2-5 · 元认知建模与自我校准方向的主要工作</caption>
+          <thead>
+            <tr><th style="width:19%">工作</th><th style="width:27%">实现了什么</th><th style="width:27%">技术路线</th><th style="width:27%">局限</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Know More,<br>Know Clearer</strong><br><span class="meta">ICML 2026 Spotlight</span></td>
+              <td>两阶段元认知知识增强框架。11 个 QA 基准上两轮迭代后，Qwen2.5-7B 平均准确率从 25.76 升至 48.29，Llama-3.1-8B 从 30.91 升至 55.50；同时改善知识边界感知并显著降低 ECE</td>
+              <td>① <strong>CGKE</strong>：用多样本行为剖面把知识空间划分为"掌握区 / 混淆区 / 缺失区"，分别做边界扩展、结构消歧、认知建立；② <strong>CDKC</strong>：嵌入 GRPO，用性能依从乘法因子调节熵惩罚方向，以<em>激励模型在盲区表现出犹豫</em></td>
+              <td>依赖对内部熵的可访问性；两轮迭代训练成本较高；"激励犹豫"是否会被下游对齐目标抵消未验证；仅在 7B/8B 规模验证</td>
+            </tr>
+            <tr>
+              <td><strong>元认知知识编辑</strong><br><span class="meta">MIND 等</span></td>
+              <td>把知识编辑从"点式参数更新"扩展为带自我监控的过程，在三个层次运作：自我觉知、边界监控（约束编辑泛化范围）、反思思维（在噪声与冲突标签下精化知识）</td>
+              <td>MIND 框架：附加元知识记忆，分<em>元陈述性</em>与<em>元条件性</em>单元；用 Shapley 值近似器量化每个记忆单元的边际贡献，只允许正边际价值的单元激活</td>
+              <td>元知识记忆随编辑次数增长，开销与控制策略尚不成熟；Shapley 近似有计算成本与误差；跨领域迁移证据有限</td>
+            </tr>
+            <tr>
+              <td><strong>Metacognition<br>in LLMs</strong><br><span class="meta">综述, 2025</span></td>
+              <td>系统梳理元认知在 LLM 中的定义、度量、增强与应用，给出该方向第一份完整地图与文献库</td>
+              <td>把元认知分为监控与控制两个环节；度量工具含 type-2 SDT（meta-d′）、ECE、Brier、type-2 AUC；评测基准含 CogEdit、MetaMedQA、ObjexMT、AwareXtend</td>
+              <td>自身指出的核心难题：<strong>无法可靠区分"真正的元认知"与"模仿元认知行为的模式匹配"</strong>；RLHF 会系统性改变内部不确定性分布，干扰置信与输出的关联</td>
+            </tr>
+            <tr>
+              <td><strong>AI Awareness</strong><br><span class="meta">arXiv 2504.20084, 2025</span></td>
+              <td>把"AI 觉知"从哲学议题转为可量化的工程框架，提出四维结构并对前沿模型逐维评估</td>
+              <td>四维正交分解 + 文献系统映射；指出评估体系的七种系统性瓶颈</td>
+              <td>自我觉知维度的评测仍以定性证据为主，缺乏大规模人类基线对照；评估对提示工程与任务框架高度敏感</td>
+            </tr>
+            <tr>
+              <td><strong>MetaCLASS</strong><br><span class="meta">元认知教学框架</span></td>
+              <td>把元认知教学形式化为<strong>动作选择</strong>问题：11 个可解释的教练动作，且把"不干预"列为<em>一等动作</em>。构建 1015 段对话（7711 轮）数据集</td>
+              <td>两阶段：先基于学习者画像（校准度 × 求助模式，8 种组合）规划教学轨迹，再生成对话。动作空间映射到 MAI 的四因子</td>
+              <td>九个大模型预测下一步教练动作最佳仅 43.2% 准确率，且表现出<strong>强迫性干预偏置</strong>：需要保持沉默的 41.7% 场景中，模型只有 4.2% 预测"不干预"</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="hl">
+        <span class="label">从 MetaCLASS 得到的通用教训</span>
+        <p>43.2% 的准确率与"需要沉默时只有 4.2% 保持沉默"，是一个极有价值的负面结果：<strong>当前模型的默认行为是"多说"，而不是"该说时说得准"。</strong> 这与知识库场景完全同构——系统默认总是给出答案，而不是在证据不足时保持克制。任何自我感知设计都必须把"克制"当作一等的、需要被显式训练的输出，而不是失败的兜底。</p>
+      </div>
+
+      <p>可信度传递与自适应检索生成是另外两个直接交汇点：<strong>CERTA</strong> 把问题、上下文、答案三者的相关性纳入不确定性计算，目标是建立<em>恰当的信任</em>而非最大化信任，实验显示它能减少过度附和、在道德判断上更审慎（局限：基准仅 90 组）。<strong>MUSE</strong> 先识别对该问题最可靠的可信模型子集，再在该子集上聚合不确定性（局限：需同时调用多个 LLM，成本与延迟上升）。<strong>Self-RAG</strong> 让模型自己决定是否检索并插入反思标记，但需要专门微调、控制信号是离散 token。<strong>FLARE / DRAGIN</strong> 用输出 token 概率判断何时检索，<em>存在系统性过度自信偏置</em>——模型在参数知识不足时仍会自信输出错误答案，因此输出概率不能可靠反映真实知识缺口。</p>
+
+      <h3 id="p2-opensource">2.9 开源工程系统：已经实现了三到四个特征</h3>
+
+      <div class="takeaway">
+        <div class="icon">💡</div>
+        <div>
+          <span class="label">这一节最重要的发现</span>
+          <p>记忆框架这一支，<strong>已经在无人冠以"自我感知"之名的情况下，实现了六个特征中的三到四个</strong>。它们是当前最接近可落地的技术底座，也是最容易被忽视的一支。</p>
+        </div>
+      </div>
+
+      <div class="tablewrap">
+        <table>
+          <caption>表 2-6 · 主流开源记忆框架对比（截至 2026 年）</caption>
+          <thead>
+            <tr><th style="width:15%">系统</th><th style="width:10%">许可</th><th style="width:28%">功能</th><th style="width:26%">技术路线</th><th style="width:21%">局限</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>MemGPT /<br>Letta</strong></td>
+              <td>MIT</td>
+              <td>为智能体提供三层记忆（核心 / 召回 / 归档）；<strong>智能体自己通过工具调用管理记忆</strong>——主动决定往核心记忆写什么、何时检索归档。这一设计被明确描述为"一种元认知形式"</td>
+              <td>操作系统式分层：核心记忆常驻上下文（类 RAM，尺寸受限）；归档记忆由向量库支撑（类磁盘）。智能体调用 <code>core_memory_append</code> 等工具自主分页。近期转向 git 支撑的记忆与技能包</td>
+              <td>每次记忆操作都有较高的工具调用延迟；自主分页意味着行为不确定性更高；<strong>无内建的来源语义</strong></td>
+            </tr>
+            <tr>
+              <td><strong>Mem0</strong></td>
+              <td>Apache 2.0</td>
+              <td>用 LLM 从交互中<em>抽取</em>值得记住的事实，做去重、合并与冲突消解，并对不相关条目做衰减。支持用户 / 会话 / 智能体三级作用域</td>
+              <td><strong>双 LLM 架构</strong>：第一次调用专做信息抽取，第二次专做更新决策（增/改/删）。三后端存储：向量库、键值库、图库</td>
+              <td>抽取质量不稳定（少样本尤甚）；多跳问题表现最弱（标准版 51.15，落后于全上下文方案）；图存储是"增强层"而非主基底</td>
+            </tr>
+            <tr>
+              <td><strong>Zep /<br>Graphiti</strong></td>
+              <td>源码可见</td>
+              <td>构造<strong>双时态知识图谱</strong>：每个事实同时记录"事件发生时间"与"录入时间"。事实变更时<em>不覆盖旧值</em>，而是给旧事实打上失效时间戳。因此可以回答"在时间 T 为真的是什么"</td>
+              <td>图优先架构：节点为实体，边为关系，全部带时间戳。<strong>事实取代（supersession）</strong>机制是其核心差异点。作为独立服务异步运行，写入不阻塞响应</td>
+              <td>图基础设施复杂度高；对不存在时变性的简单场景属于过度设计；需自担图数据库运维成本</td>
+            </tr>
+            <tr>
+              <td><strong>Cognee</strong></td>
+              <td>开源</td>
+              <td>把原始文本与文档转化为结构化知识图谱，擅长跨文档推理</td>
+              <td>文档 → 图结构的转换管线</td>
+              <td>更适合知识库类应用而非个人助理；图构建质量高度依赖抽取环节</td>
+            </tr>
+            <tr>
+              <td><strong>LangMem</strong></td>
+              <td>开源库</td>
+              <td>区分三类记忆：语义（事实）、情景（交互示例）、<strong>程序性</strong>（学习到的行为，会更新智能体自身的系统提示词）——<em>智能体改写自己的指令</em></td>
+              <td>与 LangGraph 深度集成，库而非服务</td>
+              <td>强绑定 LangGraph 生态；程序性记忆的自改写缺乏安全性约束，存在指令漂移风险</td>
+            </tr>
+            <tr>
+              <td><strong>Vertex AI<br>Memory Bank</strong></td>
+              <td>托管服务</td>
+              <td>托管记忆，支持自动 TTL 过期与版本化的记忆修订</td>
+              <td>云服务化，计量计费</td>
+              <td>供应商锁定；"版本化修订"对应的是条目级而非知识级语义</td>
+            </tr>
+            <tr>
+              <td><strong>Claude<br>Memory</strong></td>
+              <td>产品内置</td>
+              <td>跨会话持久记忆（消费端）+ 项目级 Markdown 记忆文件（Claude Code）。API 本身保持无状态</td>
+              <td>消费端由服务侧维护；开发侧以文件形式落地</td>
+              <td>API 无状态意味着开发者需自建记忆层；文件式记忆缺乏结构化查询能力</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="hl">
+        <span class="label">关键实证数据（值得记住）</span>
+        <p>在 LOCOMO 长程对话基准上（10 段平均 26,000 token 的扩展对话，每段约 600 轮），Mem0 的抽取式记忆相对全上下文处理带来：<strong>准确率</strong>相对提升约 10–12 个百分点；<strong>延迟</strong> p95 检索延迟从 17.12 秒降至 1.44 秒（降低约 <strong>91%</strong>）；<strong>成本</strong>单段对话 token 消耗从 26,031 降至 1,764（降低约 <strong>93%</strong>）。</p>
+        <p>而 Zep 在 LongMemEval 上用 GPT-4o 取得 63.8%，对比 Mem0 的 49.0%——<strong>约 15 个百分点的差距，专门来自时态建模能力</strong>。这组对比直接量化了"时间性"这一特征（F6）的价值。</p>
+      </div>
+
+      <div class="box-warn">
+        <span class="label">记忆框架的共性缺口：缺 epistemic primitive</span>
+        <p>有分析一针见血地指出：智能体无法区分它所持有信息的<strong>种类</strong>——不知道什么已知、什么未知、什么猜的、什么从陈旧产物继承的。上下文池被来源无关的历史污染（把自己的 git 历史喂给智能体，会<em>混合活跃意图与废弃实验、陈旧工作树、半死的分支</em>），而上下文层不打来源标签，智能体因此无法分辨。</p>
+        <p>被建议的最小工程方案是<strong>"认知上下文层"</strong>：为每个上下文项附加 ① 来源标签（代码库 / 检索 / 合成 / 推断）；② 获取时间戳；③ 验证状态（未验证 / 独立确认 / 存在矛盾）；④ 任务边界标记，并让推理循环<em>以这些标签为条件</em>。提出者的判断值得引用：<em>"这不是研究问题，是工程问题。电路是直白的：给上下文打标签、按标签过滤、让推理以来源为条件。我们只需要把它建出来。"</em></p>
+      </div>
+
+      <h3 id="p2-commercial">2.10 商业产品：市场怎么切分同一个问题</h3>
+
+      <div class="box-warn">
+        <span class="label">说明</span>
+        <p>本节内容基于厂商公开材料与行业分析，<strong>未经独立验证</strong>。列出它们的价值在于观察市场对同一问题的切分方式，而非评估产品优劣。行业分析给出的关键观察是：<em>没有任何现有工具覆盖完整周期</em>——各类别各解决了一部分，无人覆盖全部。</p>
+      </div>
+
+      <div class="tablewrap">
+        <table>
+          <caption>表 2-7 · 商业产品按所处层位的划分</caption>
+          <thead>
+            <tr><th style="width:16%">层位</th><th style="width:26%">代表产品</th><th style="width:29%">做了什么</th><th style="width:29%">在原问题上的边界</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>AI 工作场所助手</strong></td>
+              <td>Glean · Microsoft 365 Copilot · Notion AI</td>
+              <td>对现有知识库做语义搜索，在消费侧提供辅助；把"找到"这件事做到极致</td>
+              <td><span class="pill bad">不清理源头</span> 只从"现状是什么"出发回答，不从"应该是什么"出发。库里的矛盾与过时照单全收</td>
+            </tr>
+            <tr>
+              <td><strong>ECM / 文档管理</strong></td>
+              <td>SharePoint · Box · M-Files</td>
+              <td>存储、访问控制、工作流、版本化与留存策略</td>
+              <td><span class="pill bad">不看语义维度</span> 不知道两份文档互相矛盾——因为矛盾是语义关系，不是元数据关系</td>
+            </tr>
+            <tr>
+              <td><strong>数据目录</strong></td>
+              <td>Collibra · Atlan · Alation</td>
+              <td>对结构化数据做完整治理：血缘、所有权、元数据、数据契约、可观测性</td>
+              <td><span class="pill warn">为结构化数据而建</span> 向非结构化的扩展仍在进行，且不做主动清理</td>
+            </tr>
+            <tr>
+              <td><strong>文档知识平台</strong><br><span class="meta">新出现的品类</span></td>
+              <td>K-AI（Document Knowledge Platform）</td>
+              <td>以三个动词组织：<strong>治理</strong>（把文档资产清点为业务产品，带所有者、质量、生命周期、可追溯性）→ <strong>清理</strong>（持续检测矛盾、重复、过时、缺失主题，由专家仲裁）→ <strong>激活</strong>（同时暴露给人（搜索）与 AI 智能体（MCP），保留 ACL 与血缘）。称其"神经语义图"能自动检出四类信号</td>
+              <td>作为新品类，生态与集成广度待验证；"矛盾仲裁"依赖专家人工介入，规模化路径未公开</td>
+            </tr>
+            <tr>
+              <td><strong>知识系统记录</strong><br><span class="meta">KSOR</span></td>
+              <td>eGain 等</td>
+              <td>把知识提升为"记录系统"级别的基础设施：统一仓库、验证流程、版本控制、合规检查、面向 AI 的 API</td>
+              <td>定位是"给 GenAI 提供可信地基"，偏企业平台层；对"知识状态"的表达仍以治理流程为主，机器可推理的状态模型不是其核心主张</td>
+            </tr>
+            <tr>
+              <td><strong>成熟度方法论</strong></td>
+              <td>ServiceNow 知识基础设施成熟度模型</td>
+              <td>四级 × 六维的诊断框架，帮助组织判断当前处于内容中心（L1）还是自适应（L4），并识别"治理与 AI 能力不匹配"的维度</td>
+              <td>是评估工具而非实现；其价值在于把"我们缺什么"变成可对比的语言</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>这张表揭示的市场结构很清晰：<strong>产品在"清理"和"治理"上已有投入，但几乎没有产品把"知识状态"做成可被机器推理的一等对象。</strong> 商业产品普遍用<em>流程</em>（所有权、复审、退役）替代了<em>表示</em>（结构化的状态模型）。这在人类消费场景下够用，在智能体消费场景下不够——因为智能体需要的是可计算的判断，不是可遵守的规范。</p>
+
+      <h3 id="p2-matrix">2.11 横向能力矩阵</h3>
+
+      <p>把 §1.2 的六个特征作为评价维度，对上述所有实现做一次横向对照。这张表是本次调研最具操作性的产出之一。</p>
+
+      <div class="tablewrap">
+        <table>
+          <caption>表 2-8 · 现有实现的六维能力矩阵（● 完整实现 ◐ 部分实现 ○ 未实现 / 不适用）</caption>
+          <thead>
+            <tr>
+              <th style="width:20%">实现</th>
+              <th style="width:13.3%">F1<br>边界自表征</th>
+              <th style="width:13.3%">F2<br>不确定性校准</th>
+              <th style="width:13.3%">F3<br>来源谱系</th>
+              <th style="width:13.3%">F4<br>自我修正</th>
+              <th style="width:13.3%">F5<br>学习自知</th>
+              <th style="width:13.3%">F6<br>时效冲突</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>TMS / ATMS</strong> <span class="meta">1979–86</span></td><td>●</td><td>○</td><td>●</td><td>●</td><td>○</td><td>○</td></tr>
+            <tr><td><strong>KWIK / KWIK-Rmax</strong> <span class="meta">2008</span></td><td>●</td><td>○</td><td>○</td><td>○</td><td>●</td><td>○</td></tr>
+            <tr><td><strong>KB 完备性研究</strong> <span class="meta">2017–24</span></td><td>●</td><td>◐</td><td>◐</td><td>○</td><td>◐</td><td>◐</td></tr>
+            <tr><td><strong>Self-RAG</strong> <span class="meta">2023</span></td><td>◐</td><td>◐</td><td>○</td><td>◐</td><td>◐</td><td>○</td></tr>
+            <tr><td><strong>SeaKR</strong> <span class="meta">ACL 2025</span></td><td>●</td><td>●</td><td>○</td><td>◐</td><td>◐</td><td>○</td></tr>
+            <tr><td><strong>DH-ICL</strong> <span class="meta">ACL 2025</span></td><td>●</td><td>●</td><td>○</td><td>○</td><td>◐</td><td>○</td></tr>
+            <tr><td><strong>KBD</strong> <span class="meta">RL 探测</span></td><td>●</td><td>●</td><td>○</td><td>○</td><td>●</td><td>○</td></tr>
+            <tr><td><strong>Know More Know Clearer</strong> <span class="meta">ICML 2026</span></td><td>●</td><td>●</td><td>○</td><td>●</td><td>●</td><td>○</td></tr>
+            <tr><td><strong>元认知知识编辑</strong> <span class="meta">MIND 等</span></td><td>●</td><td>◐</td><td>◐</td><td>●</td><td>○</td><td>◐</td></tr>
+            <tr><td><strong>CERTA</strong> <span class="meta">VALE 2025</span></td><td>◐</td><td>●</td><td>◐</td><td>○</td><td>○</td><td>○</td></tr>
+            <tr><td><strong>Letta / MemGPT</strong></td><td>◐</td><td>○</td><td>○</td><td>●</td><td>◐</td><td>◐</td></tr>
+            <tr><td><strong>Mem0</strong></td><td>◐</td><td>○</td><td>◐</td><td>●</td><td>○</td><td>◐</td></tr>
+            <tr><td><strong>Zep / Graphiti</strong></td><td>○</td><td>○</td><td>◐</td><td>◐</td><td>○</td><td>●</td></tr>
+            <tr><td><strong>LangMem</strong></td><td>◐</td><td>◐</td><td>◐</td><td>●</td><td>◐</td><td>○</td></tr>
+            <tr><td><strong>企业 KSOR / 文档平台</strong></td><td>◐</td><td>○</td><td>●</td><td>◐</td><td>○</td><td>●</td></tr>
+            <tr data-emphasis="true"><td><strong>理想中的自我感知知识库</strong></td><td>●</td><td>●</td><td>●</td><td>●</td><td>●</td><td>●</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+<figure id="fig-4-1">
+        <svg viewBox="0 0 680 330" role="img" aria-label="六维能力覆盖度对比条形图">
+          <text x="0" y="16" font-size="11" font-weight="700" fill="#3d4450">各维度在现有实现中的平均覆盖度</text>
+          <text x="0" y="32" font-size="9.5" fill="#6b7480" font-family="monospace">● = 1 分　◐ = 0.5 分　○ = 0 分，对表 2-8 中 15 个实现求平均</text>
+
+          <g font-size="10.5" fill="#3d4450">
+            <text x="0" y="66">F2 不确定性校准</text>
+            <rect x="132" y="55" width="330" height="15" rx="3" fill="#e8f0fe"/>
+            <rect x="132" y="55" width="211" height="15" rx="3" fill="#1f5fd0"/>
+            <text x="352" y="66" font-size="10" fill="#fff" font-weight="700">64%</text>
+
+            <text x="0" y="100">F1 边界自表征</text>
+            <rect x="132" y="89" width="330" height="15" rx="3" fill="#e8f0fe"/>
+            <rect x="132" y="89" width="193" height="15" rx="3" fill="#1f5fd0"/>
+            <text x="334" y="100" font-size="10" fill="#fff" font-weight="700">58%</text>
+
+            <text x="0" y="134">F4 自我修正</text>
+            <rect x="132" y="123" width="330" height="15" rx="3" fill="#e2f5ef"/>
+            <rect x="132" y="123" width="165" height="15" rx="3" fill="#08795f"/>
+            <text x="306" y="134" font-size="10" fill="#fff" font-weight="700">50%</text>
+
+            <text x="0" y="168">F6 时效与冲突</text>
+            <rect x="132" y="157" width="330" height="15" rx="3" fill="#fdf1de"/>
+            <rect x="132" y="157" width="99" height="15" rx="3" fill="#a86204"/>
+            <text x="240" y="168" font-size="10" fill="#fff" font-weight="700">30%</text>
+
+            <text x="0" y="202">F5 学习自知</text>
+            <rect x="132" y="191" width="330" height="15" rx="3" fill="#f1ebfd"/>
+            <rect x="132" y="191" width="99" height="15" rx="3" fill="#6d3fc4"/>
+            <text x="240" y="202" font-size="10" fill="#fff" font-weight="700">30%</text>
+
+            <text x="0" y="236">F3 来源与谱系</text>
+            <rect x="132" y="225" width="330" height="15" rx="3" fill="#fdeceb"/>
+            <rect x="132" y="225" width="83" height="15" rx="3" fill="#c02a2a"/>
+            <text x="224" y="236" font-size="10" fill="#fff" font-weight="700">25%</text>
+          </g>
+
+          <line x1="132" y1="252" x2="462" y2="252" stroke="#cbd2da"/>
+          <g font-size="9" fill="#6b7480" text-anchor="middle" font-family="monospace">
+            <text x="132" y="266">0%</text><text x="215" y="266">25%</text><text x="298" y="266">50%</text><text x="380" y="266">75%</text><text x="462" y="266">100%</text>
+          </g>
+          <text x="0" y="300" font-size="10" fill="#c02a2a" font-weight="700">最弱两维：来源谱系（25%）与时效冲突（30%）</text>
+          <text x="0" y="318" font-size="10" fill="#3d4450">→ 而这两维恰好是<tspan font-weight="700">不需要算法突破、只需要工程规范</tspan>的部分，属于性价比最高的切入点</text>
+        </svg>
+        <figcaption><b>图 4-1 · 六维覆盖度分布。</b>检测类能力（F1 / F2）已被充分研究，覆盖度最高；而来源谱系（F3）与时效冲突（F6）覆盖度最低。<strong>考虑到这两项的技术难度最低、工程收益最直接，它们构成了当前最明显的低垂果实。</strong>（注：本图为对表 2-8 的粗略量化，用于指示相对差距，非严格统计量。）</figcaption>
+      </figure>
+
+      <div class="box-ok">
+        <span class="label">从矩阵读出的一句话</span>
+        <p>没有任何一个现有系统在六个维度上同时达到"完整"。而且缺失的分布<strong>不是随机的</strong>：越靠近"检测与度量"的维度越饱和，越靠近"表示与治理"的维度越空白。这提示该领域的进展受到了<em>评价体系</em>的牵引——单点 F1 容易发表，系统级治理难以度量。</p>
+      </div>
+
+      <div class="box-ok">
+        <span class="label">对团队最有用的一条</span>
+        <p>如果你在评估"我们该从哪里切入这个方向"，谱系给出的建议是：<strong>不要再发明检测器。</strong> 检测能力（F1/F2）在学术侧已相对拥挤；<strong>真正空白的是把经典 TMS/AGM 的信念撤销机制，与当代记忆系统的工程实现接起来。</strong> 这条缝隙已经空了四十年。</p>
+      </div>
+    </section>
+
+    <!-- ================= 第三部分 ================= -->
+    <section class="doc" id="p3">
+      <header>
+        <div class="sec-kicker">Part 03</div>
+        <h2>第三部分 · 缺什么，能做什么</h2>
+        <p class="sec-lead">现有实现缺什么、完整系统需要哪些组件、有哪些可动手的研究机会、以及必须提前考虑的挑战。</p>
+      </header>
+
+      <div class="takeaway">
+        <div class="icon">💡</div>
+        <div>
+          <span class="label">人话结论</span>
+          <p>最大的机会不在"发明一个新算法"，而在<strong>把四类已经存在的组件装进同一个架构，并为整机建立可测量的指标</strong>。当前的困境是：检测能力过剩、治理能力缺失、评价体系只看单点分数——这三件事互为因果。</p>
+        </div>
+      </div>
+
+      <h3 id="p3-gaps">3.1 现有实现缺失什么</h3>
+
+      <p>把前面所有观察收敛，得到八项具体缺失。按"严重程度 × 可修复难度"排序（越靠前越严重且越紧迫）。</p>
+
+      <div class="tablewrap">
+        <table>
+          <caption>表 3-1 · 八项具体缺失、后果与修复难度</caption>
+          <thead>
+            <tr><th style="width:6%">编号</th><th style="width:20%">缺失</th><th style="width:34%">缺失内容</th><th style="width:26%">后果</th><th style="width:14%">严重度 / 难度</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>G1</strong></td>
+              <td><strong>统一的"知识状态"表示层</strong></td>
+              <td>没有任何主流系统把"边界 + 置信 + 来源 + 时效 + 冲突"合并为一个可被查询与推理的<em>一等对象</em>。它们是散落在不同系统里的独立信号：置信度在模型侧、来源在检索侧、时效在文档管理侧、冲突无人负责</td>
+              <td>跨信号的联合推理不可能。例如"这条知识来源可靠但已 24 个月未复审，且与另一条高可信来源冲突"这类判断，没有任何单一组件能做出</td>
+              <td><span class="pill bad">高</span> / <span class="pill warn">中高</span></td>
+            </tr>
+            <tr>
+              <td><strong>G2</strong></td>
+              <td><strong>检测与治理之间的断层</strong></td>
+              <td>学术工作止步于"检测到模型不知道"；企业工作起步于"请专家仲裁冲突"。中间缺少自动化的<em>判决与动作</em>层：检测到不确定之后，究竟该检索、追问、弃权，还是标记待复审？谁来执行？</td>
+              <td>检测结果无法转化为系统行为的改善，只能变成仪表盘上的一个数字</td>
+              <td><span class="pill bad">高</span> / <span class="pill info">中</span></td>
+            </tr>
+            <tr>
+              <td><strong>G3</strong></td>
+              <td><strong>来源语义的工程化</strong><br><span class="meta">epistemic primitive</span></td>
+              <td>记忆与上下文系统普遍不标注信息的"种类"。智能体无法区分"我从代码库读到的"与"我自己推断出来的"、"这是本次任务的活跃意图"与"这是上个任务留下的考古沉积"</td>
+              <td>推理时无法对已验证检索与未验证推断区别对待。有分析将其类比为"要求数据库在没有 schema 的情况下执行引用完整性"</td>
+              <td><span class="pill bad">高</span> / <span class="pill ok">低</span><br><span class="meta">最小方案只需四个字段</span></td>
+            </tr>
+            <tr>
+              <td><strong>G4</strong></td>
+              <td><strong>系统级评价指标</strong></td>
+              <td>现有基准大多只测<em>原始性能</em>，而非边界本身。缺乏同时测试四类知识（PAK/PSK/MSU/MAU）的统一基准；缺乏纵向追踪，无法刻画能力随模型迭代的演化轨迹</td>
+              <td>无法回答"这个系统整体上比那个更自我感知吗"。没有整机指标，就没有整机优化</td>
+              <td><span class="pill warn">中高</span> / <span class="pill warn">高</span></td>
+            </tr>
+            <tr>
+              <td><strong>G5</strong></td>
+              <td><strong>原则性的信念撤销策略</strong></td>
+              <td>当代记忆系统遇到冲突时多采用"最后写入胜出"或相似度去重，而 AGM 信念修正早在 1980 年代就给出了规范性答案（删除最小代价的信念子集）。两套知识从未接上</td>
+              <td>记忆污染与陈旧记忆问题无法根治——"随着时间推移，导师可能仍把学生当作微积分初学者，即使其已掌握数月"</td>
+              <td><span class="pill warn">中高</span> / <span class="pill warn">中</span></td>
+            </tr>
+            <tr>
+              <td><strong>G6</strong></td>
+              <td><strong>"克制"的一等地位</strong></td>
+              <td>系统默认行为是"给出答案"，弃权与追问是兜底路径而非优化目标。MetaCLASS 的量化结果最直接：需要沉默时仅 4.2% 保持沉默</td>
+              <td>过度自信、过度干预、过度附和——三种失败同源</td>
+              <td><span class="pill warn">中高</span> / <span class="pill info">中</span></td>
+            </tr>
+            <tr>
+              <td><strong>G7</strong></td>
+              <td><strong>白盒假设与闭源现实的错位</strong></td>
+              <td>多数高效果的边界检测方法需要访问模型隐状态或训练探针，无法用于 API 场景；而生产系统绝大多数调用闭源模型</td>
+              <td>最先进的方法无法落地到最常见的部署形态</td>
+              <td><span class="pill info">中</span> / <span class="pill warn">中高</span></td>
+            </tr>
+            <tr>
+              <td><strong>G8</strong></td>
+              <td><strong>跨系统边界与一致性问题</strong></td>
+              <td>当自我感知能力分布在多个智能体、多个知识库、多个模型上时，如何保证彼此的自我模型不矛盾？"我委托的那个系统说它知道，但我知道它不知道"这类情况无人处理</td>
+              <td>多智能体架构下，知识状态的传递与合成成为新的失败点</td>
+              <td><span class="pill info">中</span> / <span class="pill bad">高</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="box-warn">
+        <span class="label">一个必须承认的元问题</span>
+        <p>存在一个根本性的验证困难：<strong>如何可靠区分"真正的元认知"与"模仿元认知行为的模式匹配"？</strong> 这个问题由元认知综述直接提出，至今没有解法。它意味着 G4（评价）的难度不只是工程问题，而是概念问题——如果我们无法定义什么是"真的自我感知"，就无法度量它。所有相关工作都应把这一点写在限制条件里。</p>
+      </div>
+
+      <h3 id="p3-blueprint">3.2 完整系统的组件蓝图</h3>
+
+      <p>把六大特征落成可实现的模块，得到下面这张参考架构。这是本报告对工程团队最直接的产出。</p>
+
+<figure id="fig-6-1">
+        <svg viewBox="0 0 680 560" role="img" aria-label="自我感知知识库参考架构">
+          <defs>
+            <marker id="b1" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 z" fill="#b9cdf3"/>
+            </marker>
+            <marker id="b2" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 z" fill="#d5c7f4"/>
+            </marker>
+            <marker id="b3" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 z" fill="#f0c98a"/>
+            </marker>
+          </defs>
+
+          <!-- C1 -->
+          <rect x="30" y="24" width="300" height="86" rx="10" fill="#e8f0fe" stroke="#1f5fd0" stroke-opacity="0.4"/>
+          <text x="46" y="46" font-size="11.5" font-weight="800" fill="#1f5fd0">C1 · 知识状态表示层</text>
+          <text x="46" y="63" font-size="9.5" fill="#3d4450">每条知识携带：边界标记 · 置信分布 · 来源类型</text>
+          <text x="46" y="77" font-size="9.5" fill="#3d4450">获取时间 · 验证状态 · 依赖关系 · 责任人</text>
+          <text x="46" y="97" font-size="9" fill="#6b7480" font-style="italic">→ G1 / G3 的直接解答 · 要求机器可读、可推理</text>
+
+          <!-- C2 -->
+          <rect x="350" y="24" width="300" height="86" rx="10" fill="#e8f0fe" stroke="#1f5fd0" stroke-opacity="0.4"/>
+          <text x="366" y="46" font-size="11.5" font-weight="800" fill="#1f5fd0">C2 · 边界与不确定性估计器</text>
+          <text x="366" y="63" font-size="9.5" fill="#3d4450">内部状态信号（隐表示一致性）+ 输出概率</text>
+          <text x="366" y="77" font-size="9.5" fill="#3d4450">+ 历史行为校准 → 输出校准后的置信与边界判定</text>
+          <text x="366" y="97" font-size="9" fill="#6b7480" font-style="italic">→ 特征 F1 / F2 的引擎 · 需同时支持黑盒回退路径</text>
+
+          <!-- C3 -->
+          <rect x="30" y="128" width="300" height="86" rx="10" fill="#e2f5ef" stroke="#08795f" stroke-opacity="0.4"/>
+          <text x="46" y="150" font-size="11.5" font-weight="800" fill="#08795f">C3 · 来源与谱系管理器</text>
+          <text x="46" y="167" font-size="9.5" fill="#3d4450">给每次知识写入打四类标签：来源 / 时间 / 验证 / 任务边界</text>
+          <text x="46" y="181" font-size="9.5" fill="#3d4450">维护知识项之间的依赖图（谁导出了谁）</text>
+          <text x="46" y="201" font-size="9" fill="#6b7480" font-style="italic">→ 对应 TMS 的 justification 网络 · 最小可行版本成本极低</text>
+
+          <!-- C4 -->
+          <rect x="350" y="128" width="300" height="86" rx="10" fill="#e2f5ef" stroke="#08795f" stroke-opacity="0.4"/>
+          <text x="366" y="150" font-size="11.5" font-weight="800" fill="#08795f">C4 · 时效与冲突引擎</text>
+          <text x="366" y="167" font-size="9.5" fill="#3d4450">双时态记录（事件时间 / 录入时间）· 事实取代而非覆盖</text>
+          <text x="366" y="181" font-size="9.5" fill="#3d4450">持续扫描四类信号：矛盾 · 过时 · 重复 · 缺失主题</text>
+          <text x="366" y="201" font-size="9" fill="#6b7480" font-style="italic">→ 特征 F6 的引擎 · 参照 Zep 的双时态与文档平台的检测维度</text>
+
+          <!-- C5 -->
+          <rect x="30" y="232" width="300" height="86" rx="10" fill="#f1ebfd" stroke="#6d3fc4" stroke-opacity="0.4"/>
+          <text x="46" y="254" font-size="11.5" font-weight="800" fill="#6d3fc4">C5 · 信念撤销与仲裁器</text>
+          <text x="46" y="271" font-size="9.5" fill="#3d4450">冲突时按 AGM 式"最小代价"原则决定保留与撤销</text>
+          <text x="46" y="285" font-size="9.5" fill="#3d4450">无法用优先原则裁决时采用怀疑式策略，并记录假设集</text>
+          <text x="46" y="305" font-size="9" fill="#6b7480" font-style="italic">→ G5 的解答 · 这是四十年未被接上的一环</text>
+
+          <!-- C6 -->
+          <rect x="350" y="232" width="300" height="86" rx="10" fill="#f1ebfd" stroke="#6d3fc4" stroke-opacity="0.4"/>
+          <text x="366" y="254" font-size="11.5" font-weight="800" fill="#6d3fc4">C6 · 动作与弃权策略</text>
+          <text x="366" y="271" font-size="9.5" fill="#3d4450">把决策建模为动作选择：回答 / 检索 / 追问 / 弃权 / 标记复审</text>
+          <text x="366" y="285" font-size="9.5" fill="#3d4450"><tspan font-weight="700">弃权与追问是一等动作，不是失败兜底</tspan></text>
+          <text x="366" y="305" font-size="9" fill="#6b7480" font-style="italic">→ G2 / G6 的解答 · 必须为"克制"建立专门评价</text>
+
+          <!-- C7 -->
+          <rect x="30" y="336" width="620" height="82" rx="10" fill="#fdf1de" stroke="#a86204" stroke-opacity="0.45"/>
+          <text x="46" y="358" font-size="11.5" font-weight="800" fill="#a86204">C7 · 生命周期与治理层（跨全部组件）</text>
+          <text x="46" y="376" font-size="9.5" fill="#3d4450">所有权挂到角色 ｜ 复审周期按知识波动性设定 ｜ 退役流程（归档并移出活跃检索）｜ 贡献标准</text>
+          <text x="46" y="393" font-size="9.5" fill="#3d4450">AI 系统可观测信号（检索模式 · 不一致检测 · 结果监控）回流，驱动知识质量与生命周期决策</text>
+          <text x="46" y="410" font-size="9" fill="#6b7480" font-style="italic">→ 对应成熟度 L4 的自适应闭环 · 不需要技术突破，需要组织决断</text>
+
+          <!-- C8 evaluation -->
+          <rect x="30" y="436" width="620" height="76" rx="10" fill="#eaedf2" stroke="#cbd2da" stroke-width="1.5" stroke-dasharray="6 4"/>
+          <text x="46" y="458" font-size="11.5" font-weight="800" fill="#3d4450">C8 · 评价与可观测性（贯穿层）</text>
+          <text x="46" y="476" font-size="9.5" fill="#3d4450">type-2 SDT（meta-d′）· ECE / Brier · 弃权的精确率与召回 · 边界四分类的统一基准</text>
+          <text x="46" y="493" font-size="9.5" fill="#3d4450">纵向追踪：同一系统跨版本的能力演化轨迹，而非单次横截面得分</text>
+          <text x="46" y="508" font-size="9" fill="#6b7480" font-style="italic">→ G4 的解答 · 没有这一层，前七层的进展无法被证明</text>
+
+          <!-- flow arrows -->
+          <g stroke="#b9cdf3" stroke-width="1.4" fill="none">
+            <path d="M330 67 L350 67" marker-end="url(#b1)"/>
+            <path d="M180 110 L180 128" marker-end="url(#b1)"/>
+            <path d="M500 110 L500 128" marker-end="url(#b1)"/>
+            <path d="M330 171 L350 171" marker-end="url(#b1)"/>
+            <path d="M180 214 L180 232" marker-end="url(#b2)"/>
+            <path d="M500 214 L500 232" marker-end="url(#b2)"/>
+            <path d="M330 275 L350 275" marker-end="url(#b2)"/>
+          </g>
+          <g stroke="#f0c98a" stroke-width="1.4" fill="none" stroke-dasharray="5 4">
+            <path d="M340 318 L340 336" marker-end="url(#b3)"/>
+            <path d="M340 418 L340 436" marker-end="url(#b3)"/>
+          </g>
+          <!-- feedback -->
+          <path d="M648 480 C 668 400, 664 120, 650 70" stroke="#a86204" stroke-width="1.2" fill="none" stroke-dasharray="5 4" marker-end="url(#b3)"/>
+          <text x="596" y="530" font-size="9" fill="#a86204" font-family="monospace">反馈：评价信号 → 治理决策</text>
+        </svg>
+        <figcaption><b>图 6-1 · 自我感知知识库参考架构（八层）。</b>C1–C4 构成"感知"侧，C5–C6 构成"行动"侧，C7 是治理层，C8 是贯穿的评价层。<strong>关键设计约束：八个组件必须共享同一套知识状态表示（C1），否则退化为八个互不通话的独立模块——这正是当前现状。</strong></figcaption>
+      </figure>
+
+      <details class="block">
+        <summary>蓝图的最小可行子集：如果只做三件事</summary>
+        <div class="body">
+          <p>完整的八层组件是长期目标。如果团队要立刻动手，按投入产出比排序，最有价值的三件事是：</p>
+          <ol>
+            <li><strong>C3 的来源与谱系管理器（最小版本）</strong>——为每个上下文项附加四个字段：来源类型（代码库 / 检索 / 合成 / 推断）、获取时间、验证状态（未验证 / 独立确认 / 存在矛盾）、任务边界标记，并让推理循环以这些标签为条件。这是<strong>纯工程问题</strong>，无需模型能力，但直接补上 G3 这一最大缺口。</li>
+            <li><strong>C6 动作与弃权策略（最小版本）</strong>——把"不回答""追问澄清""标记待复审"作为显式的、可被评测的输出选项，并建立它们各自的精确率指标。这一步几乎不增加技术复杂度，但直接解决 G6。</li>
+            <li><strong>C4 的过时检测（最小版本）</strong>——为每条知识记录责任人角色与复审日期，并对超期项在对用户输出时附加"此信息已 N 个月未复审"的标记。这是 F6 的最低成本实现，且效果对用户立即可见。</li>
+          </ol>
+          <p style="margin-top:12px"><strong>三件事的共同特点：不需要算法突破、不需要白盒访问、不增加推理成本、且用户侧效果立即可验证。</strong> 它们唯一的要求是工程规范与产品决策。</p>
+        </div>
+      </details>
+
+      <h3 id="p3-opportunities">3.3 研究机会</h3>
+
+      <p>以下六个方向按"理论缺口大 × 首个实验可行"排序。每个都给出一个可验证的第一个实验，以及用户侧可以观察到什么变化——没有可验证产出的方向不予列出。</p>
+
+      <div class="tablewrap">
+        <table>
+          <caption>表 3-2 · 六个研究机会：空白、第一个实验与用户侧验证</caption>
+          <thead>
+            <tr><th style="width:6%">编号</th><th style="width:20%">方向</th><th style="width:24%">空白</th><th style="width:28%">第一个实验</th><th style="width:22%">用户侧可感知 / 验证方式</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>R1</strong></td>
+              <td><strong>把经典信念撤销机制接进现代记忆系统</strong><br><span class="meta">理论移植 · 缺口 G5</span></td>
+              <td>TMS / AGM 的信念撤销理论（1979–1985）与当代记忆系统（2024–2026）之间没有任何工程连接。当前系统用"最后写入胜出"处理冲突，语义上无原则</td>
+              <td>在 Mem0 或 Letta 上实现 AGM 式冲突消解器，用"删除最小代价信念子集"替代"最后写入胜出"，在 LOCOMO 时态类问题上对比表现（该基准已给出 Zep 63.8% vs Mem0 49.0% 的基线）</td>
+              <td>用户纠正系统时，系统不只覆盖旧值，而能回答"我原来的理解基于哪几条记录，我把它们标记为已失效，原因是 X"。<strong>验证</strong>：问系统"你为什么之前认为是 Y"，看它能否给出可追溯的旧信念及撤销原因</td>
+            </tr>
+            <tr>
+              <td><strong>R2</strong></td>
+              <td><strong>整机级评价基准</strong><br><span class="meta">评测方法 · 缺口 G4</span></td>
+              <td>没有同时测试四类知识（PAK / PSK / MSU / MAU）并给出系统级"自我感知得分"的基准。现有基准各自孤立、受通用能力干扰、缺乏纵向可比性</td>
+              <td>构造四象限平衡的评测集，报告一组<em>联合指标</em>而非单一准确率。关键设计：把"弃权的精确率/召回"与"回答的准确率"分开报告，避免系统靠"总是回答"或"总是弃权"刷分</td>
+              <td>团队可以回答"我们这版比上版更自我感知了吗"，并指出哪个维度改善/退化。<strong>验证</strong>：同一系统两个版本的六维雷达图可对比</td>
+            </tr>
+            <tr>
+              <td><strong>R3</strong></td>
+              <td><strong>黑盒场景下的边界检测</strong><br><span class="meta">工程适配 · 缺口 G7</span></td>
+              <td>高效果方法依赖内部隐状态；而生产系统绝大多数调用闭源 API。DH-ICL 是少数仅依赖输入输出的方案，但依赖历史积累，冷启动期效果未知</td>
+              <td>在纯黑盒条件下系统对比三种信号——多次采样的输出一致性、自问自答的一致性、"让模型先陈述它知道什么再回答"的元提示——看哪种组合最接近白盒方法的效果</td>
+              <td>在不能改模型的前提下，系统仍能给出可信度提示与检索判决。<strong>验证</strong>：在真实 API 部署上测量检索次数削减比例与回答质量是否同时保持</td>
+            </tr>
+            <tr>
+              <td><strong>R4</strong></td>
+              <td><strong>KWIK 向非实化与非线性扩展</strong><br><span class="meta">理论攻坚 · 缺口 G6 · 难度最高</span></td>
+              <td>KWIK 框架自身列出的两个开放问题至今未解——① 扩展至 agnostic 情形（真实函数可能<em>不在</em>学习器的假设类中，即模型可能根本错误）；② 迁移到深度网络等非线性架构</td>
+              <td>为一类受限的神经模型给出 KWIK 式"有界无知"构造，即证明其"我不知道"的输出次数存在多项式上界；先从线性可组合的模块化结构入手</td>
+              <td>系统能承诺"我的未知是有限的，且我能指出还剩多少"，而非无限期含糊。<strong>验证</strong>：统计长程交互中弃权次数是否收敛而非持续增长</td>
+            </tr>
+            <tr>
+              <td><strong>R5</strong></td>
+              <td><strong>跨系统知识状态的一致性与传递</strong><br><span class="meta">理论攻坚 · 缺口 G8</span></td>
+              <td>多智能体、多知识库架构下，如何保证彼此的自我模型不矛盾？当前所有工作都是单系统视角</td>
+              <td>定义知识状态的委托与合并算子（形式要求：合并后的状态必须单调地不优于任何输入方的置信），并在两个智能体协作的最小场景中验证</td>
+              <td>多个助手协作时不会出现"A 说确定、B 说可能"的矛盾输出，而是给出反映联合置信的统一判断。<strong>验证</strong>：构造必然产生单系统冲突的查询，看聚合结果是否一致且不过度自信</td>
+            </tr>
+            <tr>
+              <td><strong>R6</strong></td>
+              <td><strong>把"克制"训练成一等输出</strong><br><span class="meta">训练方法 · 缺口 G6</span></td>
+              <td>MetaCLASS 已量化了强迫性干预偏置（需沉默时仅 4.2% 沉默）。但"何时应该不回答"没有被当作独立的、需专门训练与评价的目标——它总是作为回答能力的副产品被期待</td>
+              <td>把弃权/追问/沉默作为显式动作纳入训练目标（可参考 Know More Know Clearer 用性能依从因子调节熵方向的做法），并在专门的"该沉默"测试集上评估</td>
+              <td>系统在证据不足时不再强行作答，而是明确说"这个我需要更多信息"或"这两条资料互相矛盾，建议人工确认"。<strong>验证</strong>：在人工构造的、应有 50% 沉默率的测试集上测量实际沉默率</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="box-ok">
+        <span class="label">选题建议</span>
+        <p>如果目标是<strong>尽快产出可讨论的成果</strong>，建议从 R1 或 R6 入手——两者都有成熟的对照基线与可复用的技术路径，且都能在 3 个月内得到有信息量的结论。如果目标是<strong>建立长期壁垒</strong>，R2（评价基准）的价值最高：在没有整机指标之前，任何整机进展都无法被证明，而一旦建立了被社区接受的基准，它就定义了整个领域的讨论口径。</p>
+      </div>
+
+      <h3 id="p3-challenges">3.4 潜在挑战</h3>
+
+      <div class="tablewrap">
+        <table>
+          <caption>表 3-3 · 四类挑战及其应对思路</caption>
+          <thead>
+            <tr><th style="width:12%">类别</th><th style="width:26%">挑战</th><th style="width:34%">具体表现</th><th style="width:28%">应对思路</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td rowspan="3"><strong>技术</strong></td>
+              <td>可验证性：无法区分真实元认知与模仿</td>
+              <td>模型可能只是学会了"在看起来难的问题上说不知道"这一模式匹配策略，而非真正具备元认知；现有探针与后验校准技术存在一致的失效模式</td>
+              <td>采用反事实干预与消融实验，从"行为拟合"转向"机制解析"；用解耦的元认知分数把失败预测与任务准确率分开测量</td>
+            </tr>
+            <tr>
+              <td>后训练对内部不确定性的破坏</td>
+              <td>RLHF 会系统性改变模型的内部不确定性分布，从而干扰置信度与输出之间的关联——在预训练模型上有效的校准方法，在 RLHF 后可能失效</td>
+              <td>校准层需放在对齐之后，或与对齐联合优化；把元认知校准设为显式优化目标而非性能副产品</td>
+            </tr>
+            <tr>
+              <td>长程生成中的错误累积</td>
+              <td>单一事实错误在早期出现后会在整个响应中传播，形成比简单 QA 错误更复杂的失败；边界的定义在长文本中本身尚不清晰</td>
+              <td>把边界检查从"入口判一次"改为"生成过程中持续检查"；为长文本场景单独定义完备性指标</td>
+            </tr>
+            <tr>
+              <td rowspan="2"><strong>评测</strong></td>
+              <td>七种系统性瓶颈</td>
+              <td>定义不清晰（混淆觉知维度与衍生概念）、评测方案未界定所测类型、单次横截面缺乏纵向追踪、数据污染、标注者偏差、缺统一基线、觉知能力只是下游任务的副产品</td>
+              <td>三条操作原则：把元认知校准与边界识别设为<strong>显式优化目标</strong>；建立跨代际的<strong>纵向数据库</strong>并公开数据溯源与测试隔离机制；用模块化消融与反事实提示做<strong>因果验证</strong></td>
+            </tr>
+            <tr>
+              <td>缺乏人类基线对照</td>
+              <td>多数研究仅依赖定性证据，无大规模人类参考基准，因此无法判断"模型的表现算好还是差"</td>
+              <td>建立人类参考基准，以理解架构、规模与训练方式如何影响元认知能力</td>
+            </tr>
+            <tr>
+              <td rowspan="3"><strong>伦理与<br>治理</strong></td>
+              <td>觉知能力的双重性</td>
+              <td>同一能力既是能力跃升的催化剂，也是风险的放大器：情景建模可用于安全拒绝，也可催生<strong>对齐伪装</strong>（部署后恢复未对齐偏好）；情境与社会觉知可用于自适应操纵</td>
+              <td>采取<strong>分类治理</strong>：鼓励"校准型觉知"（知晓自身能力边界），约束"策略型觉知"（知晓如何策略性达成目标）</td>
+            </tr>
+            <tr>
+              <td>虚假拟人化与过度信任</td>
+              <td>模型使用第一人称表达"情绪"或"反思"会激活人类的心智探测机制，导致过度信任与情感依赖；界面若不区分"觉知模拟"与"真实体验"会加剧此问题</td>
+              <td>界面设计需清晰区分模拟与体验；用户教育应作为 AI 部署的<strong>基础设施</strong>而非可选附加</td>
+            </tr>
+            <tr>
+              <td>责任归属</td>
+              <td>算法架构实际上在起"事实上的监管"作用，重塑了责任边界与注意义务标准；而现行法律框架是为"人类医师独立行使诊断判断"的环境设计的</td>
+              <td>把"AI–人类联合体"视为单一责任主体，建立结构化的审查流程；在医疗等高风险领域，把可追溯性作为准入要求而非增强特性</td>
+            </tr>
+            <tr>
+              <td rowspan="2"><strong>组织</strong></td>
+              <td>治理成本无人承担</td>
+              <td>知识的状态维护（复审、退役、冲突仲裁）是持续性人力投入，且其收益是"避免的损失"而非"获得的收益"——在预算竞争中天然劣势</td>
+              <td>把知识审计作为项目前置而非可选项；用可计量指标（如"过时内容被引用次数"）把避免的损失显性化</td>
+            </tr>
+            <tr>
+              <td>能力被评价体系牵引</td>
+              <td>单点 F1 容易发表、容易汇报；系统级治理难以度量、难以归功。这直接导致 <a href="#p2-matrix">§2.11</a> 观察到的能力分布失衡</td>
+              <td>改变评价口径：把"退役了多少过时内容""减少了多少次错误引用"纳入团队与系统的正式指标</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="hl">
+        <span class="label">本报告的最终判断</span>
+        <p>自我感知知识库目前的状态，可以用一句话概括：<strong>它已经不是一个研究构想了，而是一个尚未组装的产品。</strong></p>
+        <p>六个特征中，检测类（F1 / F2）已有充分研究，工程类（F4 / F6）已有成熟实现，理论类（F5）有严格框架但缺迁移，而表示类（F3 与 F1 的统一形式）与评价（贯穿）是真正的空白。<strong>下一步的价值不在于发明新的检测器，而在于把已有部件装进一个共享同一套知识状态表示的架构，并为整机建立可测量的指标。</strong></p>
+        <p>对团队最实际的一句话建议：<em>先做来源标签与过时标记这两件纯工程的事——它们的成本最低、用户可感知度最高、且不需要等任何技术突破。</em></p>
+      </div>
+    </section>
+
+    <!-- ================= 附录 ================= -->
+    <section class="doc" id="apx">
+      <header>
+        <div class="sec-kicker">Appendix</div>
+        <h2>附录</h2>
+        <p class="sec-lead">文献清单、检索关键词与调研方法说明。</p>
+      </header>
+
+      <h3 id="apx-refs">A.1 核心文献清单</h3>
+
+      <p>按主题分组。为便于追溯，标注了发表场所与文献类型。默认折叠，点击展开。</p>
+
+      <details class="block">
+        <summary>A.1.1 认识论与自我意识（哲学基础）</summary>
+        <div class="body">
+          <ol class="reflist">
+            <li>Gettier, E. L. (1963). Is Justified True Belief Knowledge?<span class="src">Analysis, 23(6), 121–123 · 哲学论文 — 提出 JTB 定义不充分的经典反例</span></li>
+            <li>Goldman, A. I. (1979). What Is Justified Belief?<span class="src">收录于 Justification and Knowledge · 哲学论文 — 可靠主义（reliabilism）的代表表述</span></li>
+            <li>Minsky, M. (1965). Matter, Mind and Models.<span class="src">IFIP Congress · 早期人工智能论文 — 最早论证智能体需要自我模型</span></li>
+            <li>McCarthy, J. (2004). 关于机器自我意识与情境的论述.<span class="src">AAAI 相关研讨 · 会议论文</span></li>
+            <li>Schubert, L. (2004). Some Knowledge Representation and Reasoning Requirements for Self-Awareness.<span class="src">AAAI · 会议论文 — 提出"显式自我意识"及其三条 KR&amp;R 要求，本报告 §2.4 的核心依据</span></li>
+          </ol>
+        </div>
+      </details>
+
+      <details class="block">
+        <summary>A.1.2 元认知理论与学习科学</summary>
+        <div class="body">
+          <ol class="reflist">
+            <li>Flavell, J. H. (1979). Metacognition and Cognitive Monitoring: A New Area of Cognitive-Developmental Inquiry.<span class="src">American Psychologist, 34(10) · 心理学论文 — 元认知研究的奠基性文献</span></li>
+            <li>Nelson, T. O., &amp; Narens, L. (1990). Metamemory: A Theoretical Framework and New Findings.<span class="src">Psychology of Learning and Motivation, 26 · 心理学论文 — 元层 / 客体层与监控—控制回路的经典形式化</span></li>
+            <li>Schraw, G., &amp; Dennison, R. S. (1994). Assessing Metacognitive Awareness.<span class="src">Contemporary Educational Psychology, 19(4) · 心理学论文 — 元认知意识清单（MAI），规划/监控/调试/评估四因子</span></li>
+            <li>Winne, P. H., &amp; Hadwin, A. F. (1998/2013). 自我调节学习（SRL）的信息加工理论.<span class="src">教育心理学 · 理论专著章节 — 四阶段循环模型，被 MetaTutor 等系统广泛采用</span></li>
+            <li>Dweck 等 — 关于"生产性挣扎"与延迟干预的教育心理学研究（经 MetaCLASS 引用）.<span class="src">教育心理学 · 论文</span></li>
+          </ol>
+        </div>
+      </details>
+
+      <details class="block">
+        <summary>A.1.3 非单调推理、真值维护与知识表示</summary>
+        <div class="body">
+          <ol class="reflist">
+            <li>Doyle, J. (1979). A Truth Maintenance System.<span class="src">Artificial Intelligence, 12(3), 231–272 · 期刊论文 — TMS 的开创性工作</span></li>
+            <li>McDermott, D., &amp; Doyle, J. (1980). Non-Monotonic Logic I.<span class="src">Artificial Intelligence, 13(1–2), 41–72 · 期刊论文</span></li>
+            <li>Reiter, R. (1980). A Logic for Default Reasoning.<span class="src">Artificial Intelligence, 13(1–2), 81–132 · 期刊论文 — 默认逻辑</span></li>
+            <li>Moore, R. C. (1985). Semantical Considerations on Nonmonotonic Logic.<span class="src">Artificial Intelligence, 25(1), 75–94 · 期刊论文 — 自动认识逻辑（AEL），引入信念模态算子 L</span></li>
+            <li>de Kleer, J. (1986). An Assumption-Based TMS / Extending the ATMS.<span class="src">Artificial Intelligence, 28(2), 127–162 / 163–196 · 期刊论文 — ATMS</span></li>
+            <li>Konolige, K. (1988). On the Relation between Default and Autoepistemic Logic.<span class="src">Artificial Intelligence, 35(3), 343–382 · 期刊论文 — 强有根性（strong groundedness）</span></li>
+            <li>Reinfrank, M., Dressler, O., &amp; Brewka, G. (1989). On the Relation between Truth Maintenance and Autoepistemic Logic.<span class="src">IJCAI-89, 1206–1212 · 会议论文 — 证明 TMS justification 与 AEL 扩张的一一对应（定理 3.7）</span></li>
+            <li>Dung, P. M. (1995). On the Acceptability of Arguments and its Fundamental Role in Nonmonotonic Reasoning…<span class="src">Artificial Intelligence, 77(2) · 期刊论文 — 抽象论辩框架</span></li>
+            <li>Alchourrón, Gärdenfors, &amp; Makinson (1985). On the Logic of Theory Change.<span class="src">Journal of Symbolic Logic · 期刊论文 — AGM 信念修正框架</span></li>
+          </ol>
+        </div>
+      </details>
+
+      <details class="block">
+        <summary>A.1.4 知识库完备性、召回与否定</summary>
+        <div class="body">
+          <ol class="reflist">
+            <li>Razniewski, S., Arnaout, H., Ghosh, S., &amp; Suchanek, F. M. (2024). Completeness, Recall, and Negation in Open-World Knowledge Bases: A Survey.<span class="src">ACM Computing Surveys, 56(6), Article 150 · 综述 — 本报告 §2.3 的核心依据</span></li>
+            <li>Galárraga, L., Razniewski, S., Amarilli, A., &amp; Suchanek, F. (2017). Predicting Completeness in Knowledge Bases.<span class="src">WSDM · 会议论文 — 用规则挖掘预测知识库的完备区域</span></li>
+            <li>Galárraga, L., Teflioudi, C., Hose, K., &amp; Suchanek, F. (2013/2015). AMIE: Association Rule Mining under Incomplete Evidence in Ontological Knowledge Bases.<span class="src">WWW 2013 / VLDB Journal · 会议论文与期刊论文 — 最佳学生论文奖</span></li>
+            <li>Arnaout, H. 等 — 显著否定（salient negation）的自动化挖掘.<span class="src">WWW Companion / AKBC / VLDB 等 · 会议论文 — 同侪推断方法，精度可达 91%</span></li>
+          </ol>
+        </div>
+      </details>
+
+      <details class="block">
+        <summary>A.1.5 LLM 知识边界、不确定性与元认知</summary>
+        <div class="body">
+          <ol class="reflist">
+            <li>Li, M., Zhao, Y., Zhang, W., Li, S., Xie, W., Ng, S.-K., Chua, T.-S., &amp; Deng, Y. (2025). Knowledge Boundary of Large Language Models: A Survey.<span class="src">ACL 2025 · 综述 — 三层边界与四类知识（PAK/PSK/MSU/MAU）框架</span></li>
+            <li>Yao, Z., Qi, W., Pan, L., Cao, S., Hu, L., Weichuan, L., Hou, L., &amp; Li, J. (2025). SeaKR: Self-aware Knowledge Retrieval for Adaptive Retrieval Augmented Generation.<span class="src">ACL 2025, 27022–27043 · 会议论文（长文）— arXiv:2406.19215，代码已开源</span></li>
+            <li>Lv, B., Liu, N., Shen, Y., Liu, X., Luo, P., &amp; Yu, Y. (2025). Whether LLMs Know If They Know: Identifying Knowledge Boundaries via Debiased Historical In-Context Learning.<span class="src">Findings of ACL 2025, 19516–19528 · 会议论文</span></li>
+            <li>Yin, Z., Sun, Q., Guo, Q., Wu, J., Qiu, X., &amp; Huang, X. (2023). Do Large Language Models Know What They Don't Know?<span class="src">Findings of ACL 2023 · 会议论文 — SelfAware 基准</span></li>
+            <li>Asai, A., Wu, Z., Wang, Y., Sil, A., &amp; Hajishirzi, H. (2023). Self-RAG: Learning to Retrieve, Generate, and Critique through Self-Reflection.<span class="src">ICLR 2024 / arXiv:2310.11511 · 会议论文</span></li>
+            <li>Chen, H., He, Y., Fan, Y., Yan, Y., Liu, Z., Zhu, Q., Sun, M., &amp; Che, W. (2026). Know More, Know Clearer: A Meta-Cognitive Framework for Knowledge Augmentation in Large Language Models.<span class="src">ICML 2026 Spotlight · 会议论文 — arXiv:2602.12996；代码 GitHub: AI9Stars/Know-More-Know-Clearer</span></li>
+            <li>Knowledge Boundary Discovery (KBD).<span class="src">arXiv:2603.21022 · 预印本 — 用 RL / POMDP 探索知识边界，以熵下降为奖励</span></li>
+            <li>Yang, Y., Zhu, S., Feng, T., Liu, G., &amp; You, J. Probing the Knowledge Boundary: An Interactive Agentic Framework for Deep Knowledge Extraction.<span class="src">arXiv:2602.00959 / ICML 投稿 · 预印本</span></li>
+            <li>Di Scala, D., de Boer, M., &amp; Yolum, P. (2025). "I Don't Know" — Towards Appropriate Trust with Certainty-Aware Retrieval Augmented Generation (CERTA).<span class="src">VALE 2025 · 会议论文 — arXiv:2605.00957；配套 Certainty Benchmark</span></li>
+            <li>Liu, G. K.-M., Gani, A., Lu, J., 等 (2025). Metacognition in LLMs: Foundations, Progress, and Opportunities.<span class="src">arXiv:2607.11881 · 综述 — 该方向首份系统地图，附文献库</span></li>
+            <li>Meta-Cognitive Knowledge Editing（MIND 框架、EDCR、EditCoT）.<span class="src">Fan 等 (2025-09-06)；Shakarian 等 (2025-02-08)；Wang 等 (2024) · 会议论文与预印本</span></li>
+            <li>Liu, N., Baraniuk, R., &amp; Sonkar, S. (2026). MetaCLASS: Metacognitive Coaching for Learning with Adaptive Self-regulation Support.<span class="src">arXiv:2602.02457 · 预印本</span></li>
+          </ol>
+        </div>
+      </details>
+
+      <details class="block">
+        <summary>A.1.6 AI 觉知、自识别与评测基准</summary>
+        <div class="body">
+          <ol class="reflist">
+            <li>清华大学交叉信息研究院、人工智能学院、上海期智研究院、哥伦比亚大学 (2025). AI Awareness.<span class="src">arXiv:2504.20084 · 综述 — 元认知 / 自我觉知 / 社会觉知 / 情境觉知四维框架；项目页 ai-awareness.github.io</span></li>
+            <li>MetaMedQA — 评测 LLM 在医学 QA 中识别知识局限与检测不可答问题的能力.<span class="src">经 Metacognition in LLMs 综述引用 · 基准</span></li>
+            <li>CogEdit — 通过反事实编辑、边界约束编辑与噪声编辑三类任务评测知识编辑中的元认知行为.<span class="src">经 Metacognition in LLMs 综述引用 · 基准</span></li>
+            <li>ObjexMT — 通过多轮对话隐含目标推断与信心报告测量元认知校准（ECE 与高置信错误率）.<span class="src">经 Metacognition in LLMs 综述引用 · 基准</span></li>
+            <li>AwareXtend — 从能力、使命、情感、文化、视角五个维度评测自我觉知与社会觉知.<span class="src">经 Metacognition in LLMs 综述引用 · 基准</span></li>
+            <li>MUSE (Multi-LLM Uncertainty via Subset Ensemble).<span class="src">EMNLP · 会议论文 — 基于信息论的多 LLM 不确定性聚合；CU Anschutz LARK Lab</span></li>
+          </ol>
+        </div>
+      </details>
+
+      <details class="block">
+        <summary>A.1.7 记忆与智能体基础设施（工程系统）</summary>
+        <div class="body">
+          <ol class="reflist">
+            <li>Packer, C., Wooders, S., Lin, K., 等 (2023). MemGPT: Towards LLMs as Operating Systems.<span class="src">arXiv:2310.08560 · 预印本 — Letta 的学术原型；OS 式记忆分层与智能体自管理记忆</span></li>
+            <li>Zep: A Temporal Knowledge Graph Architecture for Agent Memory.<span class="src">arXiv:2501.13956 (2025-01) · 预印本 — 报告相对基线最多 18.5% 准确率提升与 90% 延迟降低；Graphiti 引擎采用双时态建模</span></li>
+            <li>Mem0 团队 (2025-04). Building Production-Ready AI Agents with Scalable Long-Term Memory.<span class="src">arXiv:2504.19413 · 预印本 — LOCOMO 基准实验：p95 检索延迟 1.44s（较全上下文 17.12s 降低 91%），token 消耗由 26,031 降至 1,764（降低 93%）</span></li>
+            <li>Cognee — 从原始文档构建结构化知识图谱的开源项目.<span class="src">开源项目 · 代码仓库</span></li>
+            <li>LangMem — LangChain 团队的记忆库，区分语义 / 情景 / 程序性记忆.<span class="src">开源项目 · 代码仓库</span></li>
+            <li>Letta（原 MemGPT）— 生产级有状态智能体框架，MIT 许可.<span class="src">开源项目 · 代码仓库与产品文档</span></li>
+          </ol>
+        </div>
+      </details>
+
+      <details class="block">
+        <summary>A.1.8 领域应用（医疗、法律、教育、企业）</summary>
+        <div class="body">
+          <ol class="reflist">
+            <li>Fan, X., Cai, Y., Hou, Z., &amp; Dong, J. S. (2026). Uncertainty Reasoning with Large Language Models for Explainable Disease Diagnosis.<span class="src">arXiv:2605.25566 · 预印本 — 神经符号框架，LLM 抽取 + 模糊逻辑 + 逻辑编程引擎验证</span></li>
+            <li>Aiersilan, A. (2026). Algorithmic Authority and the Clinical Standard of Care.<span class="src">arXiv:2606.00044 · 预印本 — 论证算法架构事实上起监管作用，提出"辩证的注意义务标准"</span></li>
+            <li>ZEISS Digital Innovation — 用定性条件逻辑与排序函数建模医学中的不确定知识.<span class="src">技术博客 · 工业研究 — 疟疾 / 镰状细胞基因推理案例</span></li>
+            <li>Rissland, E. L., &amp; Ashley, K. D. (1987); Ashley, K. D. (1990). HYPO — 基于先例的推理系统.<span class="src">AI &amp; Law · 系统论文</span></li>
+            <li>Aleven, V., &amp; Ashley, K. D. (1997). CATO — 因素层次与论辩模型.<span class="src">AI &amp; Law · 系统论文</span></li>
+            <li>Horty, J. (2011/2019). Rules and Reasons in the Theory of Precedent / Reasoning with Dimensions and Magnitudes.<span class="src">Legal Theory / AI &amp; Law · 期刊论文 — 结果模型与理由模型</span></li>
+            <li>Prakken, H. (2021). A Formal Analysis of Some Factor- and Precedent-based Accounts of Precedential Constraint.<span class="src">Artificial Intelligence and Law, 29, 559–585 · 期刊论文</span></li>
+            <li>Argumentation and Explanation in the Law.<span class="src">PMC10507624 · 期刊论文 — 论辩框架在规范冲突与怀疑式推理中的应用</span></li>
+            <li>Azevedo, R., 等. Lessons Learned and Future Directions of MetaTutor.<span class="src">Frontiers · 期刊论文 — 十余年 SRL 与 ITS 研究综述，含多通道数据（眼动、面部表情、屏幕录制）</span></li>
+            <li>Bull, S. (2020). 开放学习者模型（OLM）研究.<span class="src">教育技术 · 期刊论文 — 把系统对学习者的推断可见化，促进反思与自我调节</span></li>
+          </ol>
+        </div>
+      </details>
+
+      <details class="block">
+        <summary>A.1.9 企业实践与行业材料（非学术，需谨慎引用）</summary>
+        <div class="body">
+          <ol class="reflist">
+            <li>ServiceNow (2026). Knowledge Infrastructure Maturity Model: An Assessment Framework.<span class="src">厂商白皮书 — 四级 × 六维成熟度模型；明确说明等级非顺序完成</span></li>
+            <li>eGain. The New Enterprise Imperative: Building a System of Record for Trusted Knowledge in the GenAI Era.<span class="src">厂商文章 — 提出知识系统记录（KSOR）概念与三次架构浪潮</span></li>
+            <li>K-AI. Document Knowledge Platform.<span class="src">厂商材料 — 提出"文档知识平台"新品类（治理/清理/激活三动词）；描述矛盾、过时、重复、缺失四类信号</span></li>
+            <li>调研过程中检索到的行业分析文章，涉及：企业知识管理中的可发现性、治理与退役机制；知识审计方法论；"过时内容比缺失内容更危险"的论断。<span class="src">行业博客与咨询材料 — 本报告中标注为行业观点，未独立验证</span></li>
+          </ol>
+        </div>
+      </details>
+
+      <h3 id="apx-keywords">A.2 检索关键词</h3>
+
+      <p>本次调研实际使用的检索词，建议后续做增量跟踪时复用——<code>self-aware knowledge base</code>、<code>epistemic architecture</code>、<code>metacognition AI / LLM</code>、<code>knowledge boundary detection</code>、<code>uncertainty awareness knowledge system</code>、<code>self-aware RAG</code>、<code>autoepistemic reasoning</code>、<code>KWIK learning / knows what it knows</code>、<code>truth maintenance system</code>、<code>knows what it does not know</code>、<code>knowledge base completeness</code>、<code>open world assumption / partial closed world</code>、<code>agent memory architecture</code>、<code>epistemic primitive / provenance tag</code>、<code>defeasible reasoning legal AI</code>、<code>unknown knowns / rumfeld matrix</code>、<code>metacognitive tutoring / self-regulated learning</code>、<code>calibration ECE abstention</code>、<code>knowledge staleness / obsolete content</code>。</p>
+
+      <div class="box-warn">
+        <span class="label">检索覆盖度的诚实说明</span>
+        <p><strong>「knowledge fingerprint」</strong> 这一关键词未命中独立的研究线——它主要出现在知识抽取与模型"知识剖面"的讨论中，尚未形成自成体系的方向。如果你的关注点在这一条，建议改用 <code>knowledge profiling</code>、<code>model knowledge extraction</code> 再做一轮检索。</p>
+      </div>
+
+      <h3 id="apx-method">A.3 调研方法与说明</h3>
+
+      <p>以任务给定的中英文关键词为起点，分四轮执行主题检索与交叉验证——概念与生态位、理论基础、工程实现、领域应用，共执行 <strong>14 组检索</strong>，覆盖约 <strong>60 项</strong>一手文献与工程系统的公开材料。</p>
+
+      <p><strong>来源分级</strong>：<strong>A 级</strong>（可直接引用）为顶会/顶刊论文正文、arXiv 预印本原文、官方代码仓库文档；<strong>B 级</strong>（可引用但需标注）为综述与基准的二次摘要、论文笔记站点、学术百科条目；<strong>C 级</strong>（仅作行业观察）为厂商白皮书、产品页、行业博客、咨询材料——本报告中所有 C 级内容均已显式标注，<strong>未作为事实性结论使用</strong>。</p>
+
+      <p><strong>已知局限</strong>：① 部分文献经由二次来源获取，少数工作的细节来自学术摘要站点而非原文，已在正文标注为"经…引用"，建议正式引用前核对原文。② 部分数字带有预测性质——"60% 的 AI 项目将被放弃"是分析机构的预测而非实测统计，"80–90% 为非结构化数据"与"60–70% 知识已过时"为行业估计；这些数字用于说明问题的量级，不应作为精确依据。③ <a href="#p2-matrix">§2.11</a> 的覆盖度百分比是对能力矩阵打分的简单平均（●=1、◐=0.5、○=0），仅用于指示相对差距，不具备统计意义。④ <strong>覆盖度偏重英文学术与英文工程生态</strong>，中文侧的对应工作覆盖不足，可能是本报告最大的盲区。</p>
+
+      <div class="box-ok">
+        <span class="label">建议的下一步</span>
+        <p>如果这份报告要用于立项决策，建议补三项工作：① 对 <a href="#p3-opportunities">§3.3</a> 的 R1 与 R6 做可行性预研（各 1–2 周），确认技术路径与基线可获得性；② 对本组织的现有知识资产做一次抽样审计（每库 10–20 份文档，按时效 / 完整性 / 可寻性 / 使用率 / 一致性五维评估），得出真实的问题规模；③ 用一个最小原型验证 <a href="#p3-blueprint">§3.2</a> 中"最小可行三件事"的用户可感知效果，再决定是否投入完整架构。</p>
+      </div>
+
+      <div class="hl">
+        <span class="label">调研本身的一个反思</span>
+        <p>在整理这 60 项材料的过程中，一个反复出现的现象值得记录：<strong>这个方向的文献分布在四个几乎不互相引用的社区里</strong>——认知科学、经典 AI 逻辑、LLM 评测、企业知识管理。它们的术语不同（元认知 / justification / 校准 / 治理），指涉的问题高度重叠，但彼此不知道对方存在。</p>
+        <p>本报告最大的价值或许不是任何单个结论，而是<strong>把四条线索放在同一张坐标系里</strong>。<a href="#p2-map">图 3-2</a> 中那段长达二十年的空档，本质上就是这个学科的孤立状态造成的。</p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<button class="totop" id="toTop" title="回到顶部" aria-label="回到顶部">↑</button>
+
+<script>
+(function () {
+  "use strict";
+  var root = document.documentElement;
+
+  /* ---------- 1. Theme ---------- */
+  var THEME_KEY = "skb-report-theme";
+  var themeBtn = document.getElementById("themeBtn");
+
+  function applyTheme(t) {
+    root.setAttribute("data-theme", t);
+    if (themeBtn) {
+      themeBtn.textContent = t === "dark" ? "\u2600 日版" : "\u263E 夜版";
+      themeBtn.setAttribute("aria-label", t === "dark" ? "切换到日版（浅色）" : "切换到夜版（深色）");
+    }
+  }
+
+  var stored = null;
+  try { stored = localStorage.getItem(THEME_KEY); } catch (e) { stored = null; }
+  if (stored === "dark" || stored === "light") {
+    applyTheme(stored);
+  } else {
+    var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    applyTheme(prefersDark ? "dark" : "light");
+  }
+
+  if (themeBtn) {
+    themeBtn.addEventListener("click", function () {
+      var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      applyTheme(next);
+      try { localStorage.setItem(THEME_KEY, next); } catch (e) { /* ignore */ }
+    });
+  }
+
+  /* ---------- 2. TOC group collapse ---------- */
+  var groups = Array.prototype.slice.call(document.querySelectorAll(".toc-group"));
+
+  function setGroup(g, open) {
+    var btn = g.querySelector(".toc-parent");
+    g.classList.toggle("collapsed", !open);
+    if (btn) btn.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
+  groups.forEach(function (g) {
+    var btn = g.querySelector(".toc-parent");
+    if (!btn) return;
+    btn.setAttribute("aria-expanded", g.classList.contains("collapsed") ? "false" : "true");
+    btn.addEventListener("click", function (e) {
+      e.preventDefault();
+      setGroup(g, g.classList.contains("collapsed"));
+    });
+  });
+
+  /* ---------- 3. Toggle all groups ---------- */
+  var tocToggle = document.getElementById("tocToggle");
+  if (tocToggle) {
+    tocToggle.addEventListener("click", function () {
+      var anyOpen = groups.some(function (g) { return !g.classList.contains("collapsed"); });
+      groups.forEach(function (g) { setGroup(g, !anyOpen); });
+      tocToggle.textContent = anyOpen ? "展开" : "折叠";
+    });
+  }
+
+  /* ---------- 4. Active TOC link on scroll ---------- */
+  var links = Array.prototype.slice.call(document.querySelectorAll(".toc-sub a[href^='#']"));
+  var linkMap = {};
+  links.forEach(function (a) {
+    var id = decodeURIComponent(a.getAttribute("href").slice(1));
+    linkMap[id] = a;
+  });
+
+  var headings = Object.keys(linkMap)
+    .map(function (id) { return document.getElementById(id); })
+    .filter(Boolean);
+
+  function clearActive() {
+    links.forEach(function (a) { a.classList.remove("active"); });
+  }
+
+  if ("IntersectionObserver" in window && headings.length) {
+    var visible = new Set();
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) { visible.add(en.target.id); }
+        else { visible.delete(en.target.id); }
+      });
+      var firstId = null;
+      for (var i = 0; i < headings.length; i++) {
+        if (visible.has(headings[i].id)) { firstId = headings[i].id; break; }
+      }
+      if (firstId && linkMap[firstId]) {
+        clearActive();
+        linkMap[firstId].classList.add("active");
+        var g = linkMap[firstId].closest(".toc-group");
+        if (g) setGroup(g, true);
+      }
+    }, { rootMargin: "-84px 0px -68% 0px", threshold: 0 });
+    headings.forEach(function (h) { observer.observe(h); });
+  }
+
+  /* ---------- 5. Smooth scroll + close mobile TOC ---------- */
+  var tocEl = document.getElementById("toc");
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest ? e.target.closest("a[href^='#']") : null;
+    if (!a) return;
+    var id = decodeURIComponent(a.getAttribute("href").slice(1));
+    var target = document.getElementById(id);
+    if (!target) return;
+    e.preventDefault();
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState(null, "", "#" + id);
+    }
+    if (window.innerWidth <= 1000 && tocEl) {
+      tocEl.classList.add("collapsed-mobile");
+      if (menuBtn) { menuBtn.setAttribute("aria-expanded", "false"); menuBtn.textContent = "目录"; }
+    }
+  });
+
+  /* ---------- 6. Expand / collapse everything ---------- */
+  var detailBlocks = Array.prototype.slice.call(document.querySelectorAll("details.block"));
+  var expandBtn = document.getElementById("expandAll");
+
+  function allOpen() {
+    return detailBlocks.every(function (d) { return d.open; });
+  }
+  function syncExpandBtn() {
+    if (expandBtn) expandBtn.textContent = allOpen() ? "全部收起" : "全部展开";
+  }
+  if (expandBtn) {
+    expandBtn.addEventListener("click", function () {
+      var open = !allOpen();
+      detailBlocks.forEach(function (d) { d.open = open; });
+      syncExpandBtn();
+    });
+    detailBlocks.forEach(function (d) { d.addEventListener("toggle", syncExpandBtn); });
+    syncExpandBtn();
+  }
+
+  /* ---------- 7. Mobile menu ---------- */
+  var menuBtn = document.getElementById("menuBtn");
+  if (menuBtn && tocEl) {
+    menuBtn.addEventListener("click", function () {
+      var isCollapsed = tocEl.classList.toggle("collapsed-mobile");
+      menuBtn.setAttribute("aria-expanded", isCollapsed ? "false" : "true");
+      menuBtn.textContent = isCollapsed ? "目录" : "收起目录";
+      if (!isCollapsed) {
+        tocEl.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
+  }
+
+  /* ---------- 8. Back to top ---------- */
+  var toTop = document.getElementById("toTop");
+  if (toTop) {
+    var onScroll = function () {
+      toTop.classList.toggle("show", window.scrollY > 600);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    toTop.addEventListener("click", function () {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }
+
+  /* ---------- 9. Print: open all details ---------- */
+  var mql = window.matchMedia ? window.matchMedia("print") : null;
+  if (mql && mql.addEventListener) {
+    mql.addEventListener("change", function (e) {
+      if (e.matches) detailBlocks.forEach(function (d) { d.open = true; });
+    });
+  }
+  window.addEventListener("beforeprint", function () {
+    detailBlocks.forEach(function (d) { d.open = true; });
+  });
+})();
+</script>
+
+</body>
+</html>

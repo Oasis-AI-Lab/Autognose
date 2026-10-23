@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Frozen v0.1 survey — byte-for-byte reproducibility for external SHA-256 checks
+site/report/v0.1/index.html -text

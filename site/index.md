@@ -87,6 +87,8 @@ What we need now is a case, not a patch. If you have watched a retrieval system 
 
 Pull requests would be premature until the schema is fixed — a statement of sequence, not a closed door. If the schema is what interests you, the boundary report sets out the options; tell us where it is wrong.
 
+- [The v0.1 research survey](report/) — 2026-09, 40+ works; plain text available for machine reading.
+
 <!-- FOOTER -->
 
 <p class="foot">Autognose 自知</p>

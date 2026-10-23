@@ -1,0 +1,9 @@
+# Autognose (自知)
+
+> A self-aware knowledge layer for RAG and agents. No code yet.
+
+## Research
+- [Self-Aware Knowledge Base · survey v0.1](https://oasis-ai-lab.github.io/Autognose/report/v0.1/): 2026-09, 40+ works. Plain text: https://oasis-ai-lab.github.io/Autognose/report/v0.1/report.txt
+
+## Repository
+- [Oasis-AI-Lab/Autognose](https://github.com/Oasis-AI-Lab/Autognose)
