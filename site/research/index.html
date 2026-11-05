@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Research — Autognose</title>
+<meta name="description" content="Four research questions, eight open decisions, twenty tracked claims. The research agenda of the Autognose project.">
+<link rel="stylesheet" href="../assets/portal.css">
+</head>
+<body data-page="research" data-root="../">
+
+<header class="page-head">
+  <div class="wrap">
+    <p class="crumb rv">Autognose · Research</p>
+    <h1 class="rv-l">Research</h1>
+    <p class="lede rv d1">
+      The agenda is organised around four questions. Every claim the project makes is
+      registered with its evidence status — including the ones that weaken the core bet.
+    </p>
+  </div>
+</header>
+
+<!-- ── Research directions ─────────────────────────────────── -->
+<section id="directions" style="border-top:1px solid var(--hair-faint)">
+  <div class="wrap">
+    <p class="kicker rv"><span class="no">01</span> Research directions</p>
+    <h2 class="h-xl rv-l" style="margin:22px 0 44px">Four questions.</h2>
+    <div class="rows">
+      <div class="row-item rv" id="rq-01">
+        <span class="n">RQ·01</span>
+        <div><h3>Representation — what is the minimal epistemic-state representation that changes behaviour?</h3>
+          <p>The core bet of the project. If runtime signals suffice — no persistent self-state layer —
+          the "explicit state" hypothesis is weakened, and the architecture shrinks.
+          Tested by experiments E1 (representation ablation) and E2 (representation swap).</p>
+          <span class="chip cy" style="margin-top:10px">Hypothesis · contested</span></div>
+      </div>
+      <div class="row-item rv" id="rq-02">
+        <span class="n">RQ·02</span>
+        <div><h3>Acquisition — where do epistemic labels legitimately come from?</h3>
+          <p>Self-knowledge needs labels: sufficient, stale, conflicting. Derived automatically, human-written,
+          or synthesised? Synthetic labels bootstrap evaluation fast and carry a documented circularity risk —
+          three bottom lines are recorded as harness requirements.</p>
+          <span class="chip" style="margin-top:10px">Accepted decision · validity risk documented</span></div>
+      </div>
+      <div class="row-item rv" id="rq-03">
+        <span class="n">RQ·03</span>
+        <div><h3>Metacognitive control — when does self-knowledge change action selection for the better?</h3>
+          <p>An assessment is worthless if it does not change what happens next. Tested against a
+          score-only baseline: does the action vocabulary beat a calibrated confidence score, in which regimes,
+          at what cost?</p>
+          <span class="chip" style="margin-top:10px">Empirical question</span></div>
+      </div>
+      <div class="row-item rv" id="rq-04">
+        <span class="n">RQ·04</span>
+        <div><h3>Evaluation — how do we distinguish useful self-modeling from plausible self-description?</h3>
+          <p>Assessment quality and downstream utility are reported separately, always. A system producing
+          convincing self-descriptions is not necessarily self-aware in any operationally useful sense.</p>
+          <span class="chip cy" style="margin-top:10px">Standing method requirement</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Open questions ──────────────────────────────────────── -->
+<section id="open-questions">
+  <div class="wrap">
+    <p class="kicker rv"><span class="no">02</span> Open questions</p>
+    <h2 class="h-xl rv-l" style="margin:22px 0 10px">Eight decisions<br>await a human.</h2>
+    <p class="body-dim rv d1" style="margin-bottom:40px">
+      These block the first line of implementation code. They are listed here because
+      the state of the project should be readable from its front door.
+    </p>
+    <div class="tbl-scroll rv">
+      <table class="tbl">
+        <thead><tr><th>#</th><th>Decision</th><th>Alternatives</th><th>What would settle it</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>OD-1</td><td>Milestone subset</td><td>{sufficiency, contradiction, staleness} vs narrower vs wider</td><td>Cost estimate per scenario from the R0 dry run</td><td class="cy">OPEN</td></tr>
+          <tr><td>OD-2</td><td>D5 knowledge-state schema</td><td>4-field minimum / 7-field / no persistent schema</td><td>RQ-01 field-ablation results</td><td class="cy">OPEN · since 2026-09-12</td></tr>
+          <tr><td>OD-3</td><td>Thin vs thick ratification</td><td>Ratify the recorded thick-C ruling vs re-open</td><td>Documentation hygiene; E2 representation swap</td><td class="cy">Recorded, contradicted in SCOPE.md</td></tr>
+          <tr><td>OD-4</td><td>Judge implementation</td><td>Deterministic rules / LLM-based / hybrid</td><td>Auditability vs flexibility — RQ-04 comparison</td><td class="cy">OPEN</td></tr>
+          <tr><td>OD-5</td><td>Synthetic evaluation labels</td><td>Accept with three bottom lines / human-only / behavioural-only</td><td>Human-labelled holdout precision of the generator</td><td class="cy">Recorded · validity risk</td></tr>
+          <tr><td>OD-6</td><td>Black-box signal constraint</td><td>Black-box-only / allow white-box probes</td><td>Transferability vs signal strength</td><td class="cy">Proposed</td></tr>
+          <tr><td>OD-7</td><td>Documentation language</td><td>English public docs / bilingual</td><td>Audience reach vs team convention</td><td class="cy">OPEN</td></tr>
+          <tr><td>OD-8</td><td>First-milestone exit</td><td>What result ends R0/R1 and justifies R2?</td><td>Pre-registered in the experiment plan</td><td class="cy">OPEN</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="body-dim rv" style="margin-top:20px;font-size:13px">
+      Source: <a class="mono" style="color:var(--cyan)" href="https://github.com/Oasis-AI-Lab/Autognose/blob/main/docs/DEVELOPMENT_SCOPE.md" target="_blank" rel="noopener">docs/DEVELOPMENT_SCOPE.md §5.8</a>.
+      Open since 2026-09-12 where marked.
+    </p>
+  </div>
+</section>
+
+<!-- ── Publications ────────────────────────────────────────── -->
+<section id="publications">
+  <div class="wrap">
+    <p class="kicker rv"><span class="no">03</span> Publications</p>
+    <h2 class="h-xl rv-l" style="margin:22px 0 44px">What is published.</h2>
+    <div class="idx">
+      <a class="idx-row rv" href="../report/">
+        <span class="rn">PUB·01</span>
+        <span><h3>v0.1 research survey — self-aware knowledge systems</h3>
+          <p>2026-09 · 40+ works mapped to gaps, candidate architectures, and opportunities.
+          <strong style="color:var(--cyan)">Historical document — not a current architecture specification.</strong>
+          Field sets and vocabularies in it are candidates, not commitments.</p>
+          <span class="chip" style="margin-top:8px">read the notice</span></span>
+        <span class="go">Read →</span>
+      </a>
+    </div>
+    <div class="panel cy rv d1" style="margin-top:44px">
+      <h4>Why so thin</h4>
+      <p>Because nothing has been measured yet. The first experimental results will be published
+      as machine-readable results files with their exact commands, seeds, and model identifiers —
+      prose never replaces the file. Until then, this page stays short on purpose.</p>
+    </div>
+  </div>
+</section>
+
+<script src="../assets/portal.js"></script>
+</body>
+</html>

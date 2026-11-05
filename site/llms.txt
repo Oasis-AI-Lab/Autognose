@@ -1,9 +1,23 @@
 # Autognose (自知)
 
-> A self-aware knowledge layer for RAG and agents. No code yet.
+> A self-aware knowledge layer for RAG and agents. No code yet. Research and documentation only.
+
+## Site
+- [Overview](https://oasis-ai-lab.github.io/Autognose/)
+- [Research](https://oasis-ai-lab.github.io/Autognose/research/): four research questions, eight open decisions, publications
+- [Architecture](https://oasis-ai-lab.github.io/Autognose/architecture/): system overview, candidate mechanisms, design principles
+- [Documentation](https://oasis-ai-lab.github.io/Autognose/documentation/): honest index of existing and planned documents
+- [Development](https://oasis-ai-lab.github.io/Autognose/development/): experiments, roadmap, changelog
+- [About](https://oasis-ai-lab.github.io/Autognose/about/): background, contributing, contact
 
 ## Research
-- [Self-Aware Knowledge Base · survey v0.1](https://oasis-ai-lab.github.io/Autognose/report/v0.1/): 2026-09, 40+ works. Plain text: https://oasis-ai-lab.github.io/Autognose/report/v0.1/report.txt
+- [Self-Aware Knowledge Base · survey v0.1](https://oasis-ai-lab.github.io/Autognose/report/): 2026-09, 40+ works. Historical document, not a specification.
+
+## Program documents (on GitHub)
+- Development scope: https://github.com/Oasis-AI-Lab/Autognose/blob/main/docs/DEVELOPMENT_SCOPE.md
+- Experiment plan R0–R1: https://github.com/Oasis-AI-Lab/Autognose/blob/main/docs/EXPERIMENT_PLAN.md
+- Claim register: https://github.com/Oasis-AI-Lab/Autognose/blob/main/docs/CLAIM_REGISTER.md
+- Pre-launch roadmap: https://github.com/Oasis-AI-Lab/Autognose/blob/main/docs/roadmap/PRE_LAUNCH_ROADMAP.md
 
 ## Repository
 - [Oasis-AI-Lab/Autognose](https://github.com/Oasis-AI-Lab/Autognose)

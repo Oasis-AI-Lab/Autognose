@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Documentation — Autognose</title>
+<meta name="description" content="An honest documentation index for Autognose: what is written, what is proposed, and what does not exist yet.">
+<link rel="stylesheet" href="../assets/portal.css">
+</head>
+<body data-page="documentation" data-root="../">
+
+<header class="page-head">
+  <div class="wrap">
+    <p class="crumb rv">Autognose · Documentation</p>
+    <h1 class="rv-l">Documentation</h1>
+    <p class="lede rv d1">
+      There is no library to install yet, so there is no API reference. This page indexes
+      what genuinely exists and marks what does not — a documentation page that admits
+      its gaps is more useful than one that pretends.
+    </p>
+  </div>
+</header>
+
+<!-- ── Getting started ─────────────────────────────────────── -->
+<section id="getting-started" style="border-top:1px solid var(--hair-faint)">
+  <div class="wrap">
+    <p class="kicker rv"><span class="no">01</span> Getting started</p>
+    <h2 class="h-xl rv-l" style="margin:22px 0 44px">Nothing to install.<br>Three things to read.</h2>
+    <div class="idx">
+      <a class="idx-row rv" href="https://github.com/Oasis-AI-Lab/Autognose/blob/main/docs/DEVELOPMENT_SCOPE.md" target="_blank" rel="noopener">
+        <span class="rn">GS·01</span>
+        <span><h3>Development scope</h3>
+          <p>The canonical starting point: what the project is, the first-milestone proposal, explicit non-goals, and the eight open decisions.</p>
+          <span class="chip" style="margin-top:8px">proposed · awaiting approval</span></span>
+        <span class="go">Read ↗</span>
+      </a>
+      <a class="idx-row rv d1" href="https://github.com/Oasis-AI-Lab/Autognose/blob/main/docs/EXPERIMENT_PLAN.md" target="_blank" rel="noopener">
+        <span class="rn">GS·02</span>
+        <span><h3>Experiment plan R0–R1</h3>
+          <p>How the project intends to find out whether any of this works — scenarios, baselines, metrics, and the anti-circularity controls.</p>
+          <span class="chip" style="margin-top:8px">proposed</span></span>
+        <span class="go">Read ↗</span>
+      </a>
+      <a class="idx-row rv d2" href="https://github.com/Oasis-AI-Lab/Autognose/blob/main/AGENT.md" target="_blank" rel="noopener">
+        <span class="rn">GS·03</span>
+        <span><h3>Agent protocol (AGENT.md)</h3>
+          <p>The seven principles and the collaboration rules every contribution — human or agent — is held to.</p>
+          <span class="chip wt" style="margin-top:8px">active</span></span>
+        <span class="go">Read ↗</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Concepts ────────────────────────────────────────────── -->
+<section id="concepts">
+  <div class="wrap">
+    <p class="kicker rv"><span class="no">02</span> Concepts</p>
+    <h2 class="h-xl rv-l" style="margin:22px 0 44px">The vocabulary.</h2>
+    <div class="rows">
+      <div class="row-item rv"><span class="n">C·1</span>
+        <div><h3>Knowledge state</h3>
+          <p>What the system maintains about its own knowledge: whether the evidence is
+          <span class="kw">sufficient</span>, <span class="kw">contradictory</span>, or
+          <span class="kw">stale</span>. The field set is an open decision, deliberately unresolved
+          because it becomes the public API.</p></div></div>
+      <div class="row-item rv"><span class="n">C·2</span>
+        <div><h3>Action vocabulary</h3>
+          <p>One decision per question: <span class="kw">answer</span>,
+          <span class="kw">retrieve more</span>, <span class="kw">ask</span>,
+          <span class="kw">abstain</span>, <span class="kw">flag for review</span>.
+          "Unknown" is a legal assessment — saying so carries no penalty.</p></div></div>
+      <div class="row-item rv"><span class="n">C·3</span>
+        <div><h3>Assessment quality vs downstream utility</h3>
+          <p>Two metric families, reported separately, always. Conflating them is the failure mode
+          the experiment plan is designed to make visible.</p></div></div>
+      <div class="row-item rv"><span class="n">C·4</span>
+        <div><h3>Status labels</h3>
+          <p>Every statement in the program documents carries exactly one: established, implemented,
+          experimental, proposed, open question, or recorded decision.
+          <span class="kw">Nothing in this repository is currently Implemented.</span></p></div></div>
+      <div class="row-item rv"><span class="n">C·5</span>
+        <div><h3>Capability · mechanism · behaviour · evaluation</h3>
+          <p>Four analytical separations used throughout the documents. Recognising a boundary is a
+          capability; storing it explicitly is one mechanism among several; declining is a behaviour;
+          measuring all of it is evaluation. The survey's original six "core characteristics" mix
+          these four — that conflation is documented, not inherited.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Technical documentation ─────────────────────────────── -->
+<section id="technical">
+  <div class="wrap">
+    <p class="kicker rv"><span class="no">03</span> Technical documentation</p>
+    <h2 class="h-xl rv-l" style="margin:22px 0 44px">What exists,<br>what is planned.</h2>
+    <div class="tbl-scroll rv">
+      <table class="tbl">
+        <thead><tr><th>Document</th><th>Contents</th><th>Status</th><th>Link</th></tr></thead>
+        <tbody>
+          <tr><td>Development scope</td><td>Definition, capability space, first milestone, non-goals, open decisions</td><td class="cy">Proposed</td><td class="cy"><a href="https://github.com/Oasis-AI-Lab/Autognose/blob/main/docs/DEVELOPMENT_SCOPE.md" target="_blank" rel="noopener">GitHub ↗</a></td></tr>
+          <tr><td>Experiment plan</td><td>R0 scenarios &amp; baselines, R1 mechanism comparison, E1–E5 specs</td><td class="cy">Proposed</td><td class="cy"><a href="https://github.com/Oasis-AI-Lab/Autognose/blob/main/docs/EXPERIMENT_PLAN.md" target="_blank" rel="noopener">GitHub ↗</a></td></tr>
+          <tr><td>Claim register</td><td>C-01–C-20 with evidence status per claim</td><td class="cy">Active register</td><td class="cy"><a href="https://github.com/Oasis-AI-Lab/Autognose/blob/main/docs/CLAIM_REGISTER.md" target="_blank" rel="noopener">GitHub ↗</a></td></tr>
+          <tr><td>Project audit</td><td>What is actually true today, with file-level evidence</td><td class="cy">Delivered</td><td class="cy"><a href="https://github.com/Oasis-AI-Lab/Autognose/blob/main/docs/research/PROJECT_AUDIT.md" target="_blank" rel="noopener">GitHub ↗</a></td></tr>
+          <tr><td>Research agenda · vision · landscape · technical paths</td><td>Questions, hypotheses, literature map, candidate mechanisms</td><td class="cy">Proposed</td><td class="cy"><a href="https://github.com/Oasis-AI-Lab/Autognose/tree/main/docs/research" target="_blank" rel="noopener">GitHub ↗</a></td></tr>
+          <tr><td>v0.1 survey (published)</td><td>40+ works; historical, not a specification</td><td class="cy">Published</td><td class="cy"><a href="../report/">/report/ →</a></td></tr>
+          <tr><td>API reference</td><td>—</td><td class="cy">Planned · blocked by OD-2 (field set)</td><td class="cy">does not exist</td></tr>
+          <tr><td>Integration guides</td><td>—</td><td class="cy">Planned · after the first milestone ships</td><td class="cy">does not exist</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="body-dim rv d1" style="margin-top:20px;font-size:13px">
+      Planned rows are promises of sequence, not of dates. They appear here so the gap is visible
+      instead of hidden behind a 404.
+    </p>
+  </div>
+</section>
+
+<script src="../assets/portal.js"></script>
+</body>
+</html>

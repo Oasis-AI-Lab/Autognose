@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Autognose — Self-aware knowledge layer for RAG and agents</title>
+<meta name="description" content="Autognose maintains what a system knows about its own knowledge — provenance, verification status, staleness, confidence — and turns it into a decision. Open-source research project. No code yet.">
+<link rel="stylesheet" href="assets/portal.css">
+</head>
+<body data-page="overview" data-root="">
+
+<!-- ═══ 02 · HERO ══════════════════════════════════════════════ -->
+<section class="hero">
+  <div class="hero-symbol" aria-hidden="true"><svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice"><g></g></svg></div>
+  <div class="wrap hero-inner">
+    <p class="kicker rv"><span class="no">Autognose 自知</span> Self-aware knowledge layer · RAG &amp; agents</p>
+    <h1 class="h-display" data-kinetic style="margin-top:28px">Know what you know.</h1>
+    <h1 class="h-display" style="font-size:clamp(30px,4.6vw,64px);color:var(--cyan);text-transform:none;font-family:var(--serif);font-weight:300;letter-spacing:0;font-style:italic;margin-top:10px">Know what you don't. Act accordingly.</h1>
+    <p class="lede rv d3" style="margin-top:30px">
+      Autognose maintains what a system knows about its own knowledge — where a piece came from,
+      whether it was ever checked, whether it still holds — and turns it into a decision:
+      answer, retrieve more, ask, or abstain.
+    </p>
+    <div class="hero-actions rv d4">
+      <a class="btn cy" href="https://github.com/Oasis-AI-Lab/Autognose/blob/main/docs/DEVELOPMENT_SCOPE.md" target="_blank" rel="noopener">Read the scope</a>
+      <a class="btn ghost" href="https://github.com/Oasis-AI-Lab/Autognose" target="_blank" rel="noopener">View on GitHub</a>
+      <a class="btn ghost" href="#overview">System overview</a>
+    </div>
+    <div class="hero-status rv d5">
+      <span class="live">Status — research &amp; documentation only</span>
+      <span>MIT license</span>
+      <span>Oasis AI Lab</span>
+      <span>No implementation code yet, by design</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 03 · FEATURED RESEARCH ═════════════════════════════════ -->
+<section id="research">
+  <div class="wrap">
+    <p class="kicker rv"><span class="no">01</span> Featured research</p>
+    <h2 class="h-xl rv-l" style="margin:22px 0 10px">Four questions,<br>one wedge.</h2>
+    <p class="body-dim rv d1" style="margin-bottom:44px">
+      The research agenda is organised around four questions. Each maps to pre-registered
+      experiments; each can weaken the project's core bet. That is the point.
+    </p>
+    <div class="idx">
+      <a class="idx-row rv" href="research/#rq-01">
+        <span class="rn">RQ·01</span>
+        <span><h3>Representation</h3>
+          <p>What is the minimal epistemic-state representation that actually changes behaviour?</p></span>
+        <span class="go">Explore →</span>
+      </a>
+      <a class="idx-row rv d1" href="research/#rq-02">
+        <span class="rn">RQ·02</span>
+        <span><h3>Acquisition</h3>
+          <p>Where do epistemic labels legitimately come from — and when does the labelling collapse into circularity?</p></span>
+        <span class="go">Explore →</span>
+      </a>
+      <a class="idx-row rv d2" href="research/#rq-03">
+        <span class="rn">RQ·03</span>
+        <span><h3>Metacognitive control</h3>
+          <p>When does self-knowledge change action selection for the better?</p></span>
+        <span class="go">Explore →</span>
+      </a>
+      <a class="idx-row rv d3" href="research/#rq-04">
+        <span class="rn">RQ·04</span>
+        <span><h3>Evaluation</h3>
+          <p>How do we distinguish useful self-modeling from plausible self-description?</p></span>
+        <span class="go">Explore →</span>
+      </a>
+    </div>
+    <p class="rv d3" style="margin-top:22px">
+      <a class="chip cy" href="https://github.com/Oasis-AI-Lab/Autognose/blob/main/docs/CLAIM_REGISTER.md" target="_blank" rel="noopener">20 consequential claims tracked in the claim register →</a>
+    </p>
+  </div>
+</section>
+
+<!-- ═══ 04 · SYSTEM OVERVIEW ═══════════════════════════════════ -->
+<section id="overview">
+  <div class="wrap">
+    <p class="kicker rv"><span class="no">02</span> System overview</p>
+    <h2 class="h-xl rv-l" style="margin:22px 0 10px">Assessment in.<br>Decision out.</h2>
+    <p class="body-dim rv d1" style="margin-bottom:38px">
+      Autognose is planned as a <strong>library, not a retriever</strong> — a recorded decision.
+      It sits beside your retrieval stack and hands back one decision per question.
+      The diagram shows the intended relationships; dashed elements are conceptual and open.
+      Click any node.
+    </p>
+
+    <div class="diagram-block rv d1">
+      <svg class="net" viewBox="0 0 1100 540" role="img" aria-label="Interactive diagram: information sources and retrieval results flow into the Autognose knowledge state, which drives one of five decision actions; an evaluation harness scores both">
+        <!-- edges -->
+        <path class="edge" data-edge d="M250,115 C330,115 340,220 430,220"/>
+        <path class="edge" data-edge d="M250,235 C330,235 340,240 430,240"/>
+        <path class="edge dash" data-edge d="M250,355 C330,355 340,262 430,262"/>
+        <path class="edge" data-edge d="M610,215 C680,215 690,120 760,120"/>
+        <path class="edge" data-edge d="M610,230 C680,230 690,205 760,205"/>
+        <path class="edge" data-edge d="M610,245 C680,245 690,290 760,290"/>
+        <path class="edge" data-edge d="M610,260 C680,260 690,375 760,375"/>
+        <path class="edge" data-edge d="M610,275 C680,275 690,460 760,460"/>
+        <path class="edge dash" data-edge d="M520,430 L520,310"/>
+
+        <!-- inputs (external roles — dashed: conceptual boundary) -->
+        <g data-node="sources" class="rv">
+          <rect class="shape dash" x="180" y="88" width="70" height="54" rx="2"/>
+          <text x="215" y="112" text-anchor="middle" font-size="11.5">Docs</text>
+          <text class="sub" x="215" y="128" text-anchor="middle">corpus</text>
+        </g>
+        <g data-node="retrieval" class="rv d1">
+          <rect class="shape dash" x="180" y="208" width="70" height="54" rx="2"/>
+          <text x="215" y="232" text-anchor="middle" font-size="11.5">Retriever</text>
+          <text class="sub" x="215" y="248" text-anchor="middle">results</text>
+        </g>
+        <g data-node="feedback" class="rv d2">
+          <rect class="shape dash" x="180" y="328" width="70" height="54" rx="2"/>
+          <text x="215" y="352" text-anchor="middle" font-size="11.5">Feedback</text>
+          <text class="sub" x="215" y="368" text-anchor="middle">ops</text>
+        </g>
+
+        <!-- centre: knowledge state -->
+        <g data-node="state">
+          <rect class="shape" x="430" y="180" width="180" height="130" rx="2"/>
+          <text class="lbl" x="520" y="205" text-anchor="middle">Autognose</text>
+          <text x="520" y="230" text-anchor="middle" font-size="12.5">knowledge state</text>
+          <text class="sub" x="520" y="252" text-anchor="middle">sufficiency · contradiction</text>
+          <text class="sub" x="520" y="270" text-anchor="middle">staleness</text>
+          <text class="lbl" x="520" y="296" text-anchor="middle" style="fill:var(--faint)">field set — open</text>
+        </g>
+
+        <!-- actions -->
+        <g data-node="actions">
+          <g class="rv d2"><circle class="shape" cx="800" cy="120" r="26"/><text x="800" y="124" text-anchor="middle" font-size="10.5">answer</text></g>
+          <g class="rv d3"><circle class="shape" cx="800" cy="205" r="26"/><text x="800" y="209" text-anchor="middle" font-size="10">retrieve</text><text class="sub" x="800" y="222" text-anchor="middle">more</text></g>
+          <g class="rv d3"><circle class="shape" cx="800" cy="290" r="26"/><text x="800" y="294" text-anchor="middle" font-size="10.5">ask</text></g>
+          <g class="rv d4"><circle class="shape" cx="800" cy="375" r="26"/><text x="800" y="379" text-anchor="middle" font-size="10.5">abstain</text></g>
+          <g class="rv d4"><circle class="shape" cx="800" cy="460" r="26"/><text x="800" y="464" text-anchor="middle" font-size="10.5">flag</text></g>
+        </g>
+
+        <!-- evaluation harness -->
+        <g data-node="harness" class="rv d5">
+          <rect class="shape open" x="430" y="430" width="180" height="66" rx="2"/>
+          <text class="lbl" x="520" y="456" text-anchor="middle">Evaluation harness</text>
+          <text class="sub" x="520" y="476" text-anchor="middle">baselines B0–B4 · scenarios S1–S5</text>
+        </g>
+
+        <text class="lbl" x="60" y="50">input — external roles</text>
+        <text class="lbl" x="720" y="50">output — action vocabulary</text>
+      </svg>
+
+      <div class="legend">
+        <span><i></i>Recorded / planned interface</span>
+        <span class="l-dash"><i></i>Conceptual · open boundary</span>
+        <span class="l-cyan"><i></i>Evaluated first</span>
+      </div>
+
+      <div class="detail" aria-live="polite">
+        <p class="dt-tag">Read me</p>
+        <h3>Select a node</h3>
+        <p>Each node carries its decision status — recorded, proposed, or open. Nothing on this
+        diagram is implemented; the distinction between recorded and proposed is the honest part.</p>
+      </div>
+    </div>
+
+    <script type="application/json" id="node-data">
+    {
+      "sources":   {"status":"External role · recorded boundary","title":"Information sources","body":"Evidence, observations, historical records, operational feedback. Autognose consumes what they expose; it does not own them."},
+      "retrieval": {"status":"External role · recorded decision (D-2)","title":"Retrieval results","body":"The caller's retriever stays untouched. Recorded ruling: Autognose owns knowledge state and builds no retriever — the caller decides whether to act on the assessment."},
+      "feedback":  {"status":"External role · proposed (limited scenarios)","title":"Operational feedback","body":"Tool states, source health, task context. Scoped to limited scenarios in the first milestone only; everything beyond that is deferred, not promised."},
+      "state":     {"status":"Autognose · proposed focus","title":"Knowledge state","body":"Assessments along three proposed phenomena: evidence sufficiency, contradiction, staleness — observable from document metadata plus retrieval scores, no model internals required. The exact field set is the project's longest-standing open decision (OD-2): it determines the public API, so none exists yet."},
+      "actions":   {"status":"Output contract · proposed","title":"Action vocabulary","body":"One action per question: answer, retrieve more, ask, abstain, or flag for review. 'Unknown' is a legal assessment — a system that cannot tell must be able to say so without penalty."},
+      "harness":   {"status":"R0 · proposed, pre-registered","title":"Evaluation harness","body":"An evaluation that can fail honestly: five scenario families with ground truth by construction, five baselines (always-answer, always-abstain, retrieval-only, rule-based, score-only), and assessment quality reported separately from downstream utility. Always."}
+    }
+    </script>
+
+    <div class="panel-grid" style="margin-top:40px">
+      <div class="panel rv"><h4>Decision, not generation</h4>
+        <p>Given a question and what was retrieved, the output is a decision made honestly.
+        A decision you can audit is what "self-aware" means here — nothing more, nothing mystical.</p></div>
+      <div class="panel rv d1"><h4>Thick on state, thin on plumbing</h4>
+        <p>Recorded ruling: own the knowledge state, build no retriever, deliver as a library.
+        The caller stays in control of its own loop.</p></div>
+      <div class="panel rv d2"><h4>Evaluated or it does not count</h4>
+        <p>No capability claim without a harness that could fail. Baselines ship with every
+        comparison, and degenerate systems must score badly.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 05 · PROJECT ECOSYSTEM ═════════════════════════════════ -->
+<section id="ecosystem">
+  <div class="wrap">
+    <p class="kicker rv"><span class="no">03</span> Project ecosystem</p>
+    <h2 class="h-xl rv-l" style="margin:22px 0 10px">A system index,<br>not a product list.</h2>
+    <p class="body-dim rv d1" style="margin-bottom:38px">
+      Everything the project currently consists of. This index grows as the project does;
+      nothing below is a shipping product.
+    </p>
+    <div class="eco">
+      <div class="eco-col eco-4 rv">
+        <h3>Program documents</h3>
+        <ul>
+          <li><a href="https://github.com/Oasis-AI-Lab/Autognose/blob/main/docs/DEVELOPMENT_SCOPE.md" target="_blank" rel="noopener">Development scope</a> <span class="chip">proposed</span></li>
+          <li><a href="https://github.com/Oasis-AI-Lab/Autognose/blob/main/docs/EXPERIMENT_PLAN.md" target="_blank" rel="noopener">Experiment plan R0–R1</a> <span class="chip">proposed</span></li>
+          <li><a href="https://github.com/Oasis-AI-Lab/Autognose/blob/main/docs/CLAIM_REGISTER.md" target="_blank" rel="noopener">Claim register</a> <span class="chip cy">20 claims</span></li>
+          <li><a href="https://github.com/Oasis-AI-Lab/Autognose/blob/main/docs/research/PROJECT_AUDIT.md" target="_blank" rel="noopener">Project audit</a> <span class="chip">delivered</span></li>
+          <li><a href="https://github.com/Oasis-AI-Lab/Autognose/blob/main/docs/roadmap/PRE_LAUNCH_ROADMAP.md" target="_blank" rel="noopener">Pre-launch roadmap</a> <span class="chip">living</span></li>
+        </ul>
+      </div>
+      <div class="eco-col eco-4 rv d1">
+        <h3>Published</h3>
+        <ul>
+          <li><a href="report/">v0.1 research survey</a> <span class="chip">historical</span>
+            <br><span class="mono" style="font-size:10.5px">40+ works · not a specification</span></li>
+          <li><a href="https://raw.githubusercontent.com/Oasis-AI-Lab/Autognose/main/site/llms.txt" target="_blank" rel="noopener">llms.txt</a> <span class="chip">machine-readable index</span></li>
+        </ul>
+        <h3 style="margin-top:26px">This site</h3>
+        <ul>
+          <li><a href="research/">Research</a> — directions, open questions, publications</li>
+          <li><a href="architecture/">Architecture</a> — overview, roles, principles</li>
+          <li><a href="documentation/">Documentation</a> — real index, planned pages marked</li>
+          <li><a href="development/">Development</a> — experiments, roadmap, changelog</li>
+        </ul>
+      </div>
+      <div class="eco-col eco-4 rv d2">
+        <h3>Repository layout</h3>
+        <ul>
+          <li><span class="mono">packages/</span> schema · ingest · state · lifecycle · judge · eval <span class="chip">candidate · empty</span></li>
+          <li><span class="mono">apps/service</span> <span class="chip">candidate · empty</span></li>
+          <li><span class="mono">spec/</span> <span class="chip">candidate · empty</span></li>
+          <li><span class="mono">docs/</span> program documents <span class="chip cy">active</span></li>
+          <li><span class="mono">research/</span> survey archive <span class="chip">archive</span></li>
+        </ul>
+        <p class="body-dim" style="font-size:12.5px;margin-top:14px">The scaffold is a hypothesis
+        (audit P-09), not a commitment — R1 reveals the load-bearing modules.</p>
+      </div>
+      <div class="eco-col eco-4 rv d3">
+        <h3>Recorded decisions</h3>
+        <ul>
+          <li>First milestone: open-source release <span class="chip wt">D1</span></li>
+          <li>Audience: open-source developers <span class="chip wt">D2</span></li>
+          <li>Delivery form: library <span class="chip wt">D4</span></li>
+          <li>Single repository <span class="chip wt">D6</span></li>
+          <li>Own knowledge state, no retriever <span class="chip wt">D-2</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 06 · LATEST UPDATES ════════════════════════════════════ -->
+<section id="updates">
+  <div class="wrap">
+    <p class="kicker rv"><span class="no">04</span> Latest updates</p>
+    <h2 class="h-xl rv-l" style="margin:22px 0 10px">Verifiable events<br>only.</h2>
+    <p class="body-dim rv d1" style="margin-bottom:38px">
+      A chronological feed of what actually happened in the repository, with commit references.
+      No projected dates, no promised features.
+    </p>
+    <div class="feed">
+      <div class="feed-item rv">
+        <span class="fd">2026 · 11 · 05</span>
+        <div><h3>Homepage visual draft committed</h3>
+          <p>First implementation of the red-field visual identity; superseded by this portal in the same working session.</p>
+          <span class="sha">50bd0d3</span></div>
+      </div>
+      <div class="feed-item rv d1">
+        <span class="fd">2026 · 10 · 23</span>
+        <div><h3>v0.1 research survey published</h3>
+          <p>40+ works on self-aware knowledge systems, published to /report/ and marked historical — not an architecture specification.</p>
+          <span class="sha">6d251a3</span></div>
+      </div>
+      <div class="feed-item rv d2">
+        <span class="fd">2026 · 09 · 12</span>
+        <div><h3>Foundations day</h3>
+          <p>Boundary report and v0.1 scope proposal committed; monorepo scaffold created; GitHub Pages CI wired; positioning page published. Team decisions recorded: milestone, audience, delivery form.</p>
+          <span class="sha">17f8079 · c3fbec4</span></div>
+      </div>
+      <div class="feed-item rv d3">
+        <span class="fd">2026 · 09 · 11</span>
+        <div><h3>Repository initialized</h3>
+          <p>Agent protocol (AGENT.md) and thinking notes committed. MIT licensed.</p>
+          <span class="sha">initial commit</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 07 · RESOURCES ═════════════════════════════════════════ -->
+<section id="resources">
+  <div class="wrap">
+    <p class="kicker rv"><span class="no">05</span> Resources</p>
+    <h2 class="h-xl rv-l" style="margin:22px 0 44px">Enter here.</h2>
+    <div class="idx">
+      <a class="idx-row rv" href="https://github.com/Oasis-AI-Lab/Autognose" target="_blank" rel="noopener">
+        <span class="rn">RES·01</span>
+        <span><h3>Repository</h3><p>Principles, decision records, program documents, and the survey. Open core, MIT.</p></span>
+        <span class="go">GitHub ↗</span>
+      </a>
+      <a class="idx-row rv d1" href="documentation/">
+        <span class="rn">RES·02</span>
+        <span><h3>Documentation</h3><p>An honest index of what is documented, what is proposed, and what does not exist yet.</p></span>
+        <span class="go">Open →</span>
+      </a>
+      <a class="idx-row rv d2" href="report/">
+        <span class="rn">RES·03</span>
+        <span><h3>v0.1 research survey</h3><p>The literature map the project started from. Historical document — read the notice first.</p></span>
+        <span class="go">Read →</span>
+      </a>
+      <a class="idx-row rv d3" href="https://github.com/Oasis-AI-Lab/Autognose/issues" target="_blank" rel="noopener">
+        <span class="rn">RES·04</span>
+        <span><h3>Issues</h3><p>What we need now is a case, not a patch: retrieval systems answering confidently where the evidence was thin.</p></span>
+        <span class="go">Open issues ↗</span>
+      </a>
+      <a class="idx-row rv d4" href="https://github.com/Oasis-AI-Lab" target="_blank" rel="noopener">
+        <span class="rn">RES·05</span>
+        <span><h3>Oasis AI Lab</h3><p>The organization behind Autognose.</p></span>
+        <span class="go">GitHub org ↗</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<script src="assets/portal.js"></script>
+</body>
+</html>

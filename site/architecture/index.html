@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Architecture — Autognose</title>
+<meta name="description" content="Ownership boundaries, candidate mechanisms, and design principles of the Autognose self-aware knowledge layer.">
+<link rel="stylesheet" href="../assets/portal.css">
+</head>
+<body data-page="architecture" data-root="../">
+
+<header class="page-head">
+  <div class="wrap">
+    <p class="crumb rv">Autognose · Architecture</p>
+    <h1 class="rv-l">Architecture</h1>
+    <p class="lede rv d1">
+      One recorded ruling shapes everything: Autognose owns the knowledge state and builds
+      no retriever. Everything else here is a candidate, labelled as such.
+    </p>
+  </div>
+</header>
+
+<!-- ── System overview ─────────────────────────────────────── -->
+<section id="system" style="border-top:1px solid var(--hair-faint)">
+  <div class="wrap">
+    <p class="kicker rv"><span class="no">01</span> System overview</p>
+    <h2 class="h-xl rv-l" style="margin:22px 0 10px">The intended shape.</h2>
+    <p class="body-dim rv d1" style="margin-bottom:38px">
+      Roles, not components: the table below is an analytical separation, not a set of services.
+      Select a node to read its status.
+    </p>
+
+    <div class="diagram-block rv d1">
+      <svg class="net" viewBox="0 0 1100 540" role="img" aria-label="System overview diagram: sources and retrieval feed the knowledge state, which drives five actions; the evaluation harness observes">
+        <path class="edge" data-edge d="M250,115 C330,115 340,220 430,220"/>
+        <path class="edge" data-edge d="M250,235 C330,235 340,240 430,240"/>
+        <path class="edge dash" data-edge d="M250,355 C330,355 340,262 430,262"/>
+        <path class="edge" data-edge d="M610,215 C680,215 690,120 760,120"/>
+        <path class="edge" data-edge d="M610,230 C680,230 690,205 760,205"/>
+        <path class="edge" data-edge d="M610,245 C680,245 690,290 760,290"/>
+        <path class="edge" data-edge d="M610,260 C680,260 690,375 760,375"/>
+        <path class="edge" data-edge d="M610,275 C680,275 690,460 760,460"/>
+        <path class="edge dash" data-edge d="M520,430 L520,310"/>
+
+        <g data-node="sources" class="rv">
+          <rect class="shape dash" x="180" y="88" width="70" height="54" rx="2"/>
+          <text x="215" y="112" text-anchor="middle" font-size="11.5">Docs</text>
+          <text class="sub" x="215" y="128" text-anchor="middle">corpus</text>
+        </g>
+        <g data-node="retrieval" class="rv d1">
+          <rect class="shape dash" x="180" y="208" width="70" height="54" rx="2"/>
+          <text x="215" y="232" text-anchor="middle" font-size="11.5">Retriever</text>
+          <text class="sub" x="215" y="248" text-anchor="middle">results</text>
+        </g>
+        <g data-node="feedback" class="rv d2">
+          <rect class="shape dash" x="180" y="328" width="70" height="54" rx="2"/>
+          <text x="215" y="352" text-anchor="middle" font-size="11.5">Feedback</text>
+          <text class="sub" x="215" y="368" text-anchor="middle">ops</text>
+        </g>
+        <g data-node="state">
+          <rect class="shape" x="430" y="180" width="180" height="130" rx="2"/>
+          <text class="lbl" x="520" y="205" text-anchor="middle">Autognose</text>
+          <text x="520" y="230" text-anchor="middle" font-size="12.5">knowledge state</text>
+          <text class="sub" x="520" y="252" text-anchor="middle">sufficiency · contradiction</text>
+          <text class="sub" x="520" y="270" text-anchor="middle">staleness</text>
+          <text class="lbl" x="520" y="296" text-anchor="middle" style="fill:var(--faint)">field set — open</text>
+        </g>
+        <g data-node="actions">
+          <g class="rv d2"><circle class="shape" cx="800" cy="120" r="26"/><text x="800" y="124" text-anchor="middle" font-size="10.5">answer</text></g>
+          <g class="rv d3"><circle class="shape" cx="800" cy="205" r="26"/><text x="800" y="209" text-anchor="middle" font-size="10">retrieve</text><text class="sub" x="800" y="222" text-anchor="middle">more</text></g>
+          <g class="rv d3"><circle class="shape" cx="800" cy="290" r="26"/><text x="800" y="294" text-anchor="middle" font-size="10.5">ask</text></g>
+          <g class="rv d4"><circle class="shape" cx="800" cy="375" r="26"/><text x="800" y="379" text-anchor="middle" font-size="10.5">abstain</text></g>
+          <g class="rv d4"><circle class="shape" cx="800" cy="460" r="26"/><text x="800" y="464" text-anchor="middle" font-size="10.5">flag</text></g>
+        </g>
+        <g data-node="harness" class="rv d5">
+          <rect class="shape open" x="430" y="430" width="180" height="66" rx="2"/>
+          <text class="lbl" x="520" y="456" text-anchor="middle">Evaluation harness</text>
+          <text class="sub" x="520" y="476" text-anchor="middle">baselines B0–B4 · scenarios S1–S5</text>
+        </g>
+        <text class="lbl" x="60" y="50">input — external roles</text>
+        <text class="lbl" x="720" y="50">output — action vocabulary</text>
+      </svg>
+      <div class="legend">
+        <span><i></i>Recorded / planned interface</span>
+        <span class="l-dash"><i></i>Conceptual · open boundary</span>
+        <span class="l-cyan"><i></i>Evaluated first</span>
+      </div>
+      <div class="detail" aria-live="polite">
+        <p class="dt-tag">Read me</p>
+        <h3>Select a node</h3>
+        <p>Statuses: recorded (a documented decision exists), proposed (awaiting approval),
+        or open (needs evidence or a ruling).</p>
+      </div>
+    </div>
+    <script type="application/json" id="node-data">
+    {
+      "sources":   {"status":"External role · recorded boundary","title":"Information sources","body":"Evidence, observations, historical records, operational feedback. Owned by the surrounding system, not by Autognose."},
+      "retrieval": {"status":"External role · recorded decision (D-2, 2026-10-21)","title":"Retrieval — not ours","body":"Thick-C ruling: Autognose answers 'is this evidence sufficient / conflicting / stale, and what should happen next'. Whether the caller acts on the assessment is an empirical question, not an architectural one."},
+      "feedback":  {"status":"External role · proposed (limited scenarios)","title":"Operational awareness","body":"What is the state of the surrounding process — tools, sources, tasks? Scoped to limited scenarios in the first milestone; not a general promise."},
+      "state":     {"status":"Autognose · proposed focus","title":"Knowledge state","body":"Deriving, maintaining, and exposing self-state assessments. Candidate phenomena for the first milestone: sufficiency, contradiction, staleness — all observable from document metadata plus retrieval scores (black-box constraint). The field set (OD-2) is open because it determines the public API."},
+      "actions":   {"status":"Output contract · proposed","title":"Action vocabulary","body":"answer / retrieve more / ask / abstain / flag for review. The action is logged per case and must change when its inputs change — the counterfactual check."},
+      "harness":   {"status":"R0 · proposed, pre-registered","title":"Evaluation harness","body":"Owns correctness, decision impact, reproducibility, and engineering cost. Runs five baselines alongside every mechanism and reports assessment quality and downstream utility separately."}
+    }
+    </script>
+  </div>
+</section>
+
+<!-- ── Components & candidates ─────────────────────────────── -->
+<section id="components">
+  <div class="wrap">
+    <p class="kicker rv"><span class="no">02</span> Candidate mechanisms</p>
+    <h2 class="h-xl rv-l" style="margin:22px 0 10px">Three approaches,<br>one comparison.</h2>
+    <p class="body-dim rv d1" style="margin-bottom:40px">
+      R1 compares three minimal mechanisms on the same scenarios and baselines.
+      None is selected; the comparison exists to select one — or to report that none beats
+      hand-written rules.
+    </p>
+    <div class="tbl-scroll rv">
+      <table class="tbl">
+        <thead><tr><th>Approach</th><th>Mechanism</th><th>Persistence</th><th>Weighed against</th></tr></thead>
+        <tbody>
+          <tr><td>A — Explicit state <span class="chip cy" style="margin-left:6px">thick</span></td><td>Selected evidence and epistemic-state fields maintained and persisted across queries</td><td>Yes</td><td>E1 / E2 ablation and swap</td></tr>
+          <tr><td>B — Runtime inference <span class="chip" style="margin-left:6px">thin</span></td><td>Assessments derived from currently accessible information: retrieval scores, item metadata, multi-sample consistency</td><td>No</td><td>E1 null hypothesis</td></tr>
+          <tr><td>C — Hybrid <span class="chip" style="margin-left:6px">middle</span></td><td>Limited persistent records (supersession links, source types) plus runtime inference</td><td>Partial</td><td>E1 / E2</td></tr>
+          <tr><td>B0–B4 — Baselines <span class="chip wt" style="margin-left:6px">always run</span></td><td>Always-answer · always-abstain · retrieval-only · rule-based · score-only</td><td>—</td><td>Every comparison, same harness version</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ── Design principles ───────────────────────────────────── -->
+<section id="principles">
+  <div class="wrap">
+    <p class="kicker rv"><span class="no">03</span> Design principles</p>
+    <div class="two-col" style="margin-top:26px">
+      <div>
+        <h2 class="h-xl rv-l">Seven rules,<br>no exceptions.</h2>
+        <p class="body-dim rv d1" style="margin-top:20px">From the agent protocol (AGENT.md).
+        They are constraints on every contribution, including this website.</p>
+      </div>
+      <div class="rows">
+        <div class="row-item rv"><span class="n">01</span><div><h3>Meta-knowledge first.</h3><p>Nothing is built on items lacking provenance and status.</p></div></div>
+        <div class="row-item rv"><span class="n">02</span><div><h3>Evaluation first.</h3><p>No capability claim without a harness that could fail.</p></div></div>
+        <div class="row-item rv"><span class="n">03</span><div><h3>One narrow wedge.</h3><p>Obviously incomplete beats vaguely broad.</p></div></div>
+        <div class="row-item rv"><span class="n">04</span><div><h3>Honest uncertainty.</h3><p>Where we do not know, we say so — in docs and in code.</p></div></div>
+        <div class="row-item rv"><span class="n">05</span><div><h3>Low overhead.</h3><p>If provenance costs a real fraction of the query budget, the design is wrong.</p></div></div>
+        <div class="row-item rv"><span class="n">06</span><div><h3>Open core.</h3><p>MIT. The public surface is the project.</p></div></div>
+        <div class="row-item rv"><span class="n">07</span><div><h3>Do not reinvent wheels.</h3><p>Use the retriever, the database, and the framework that exist.</p></div></div>
+      </div>
+    </div>
+
+    <div class="panel rv" style="margin-top:56px">
+      <h4>Explicit non-goals — first milestone</h4>
+      <div class="panel-grid">
+        <p>No consciousness, sentience, or experiential claims.</p>
+        <p>No general autonomous planning or agent runtime.</p>
+        <p>No large-scale or distributed databases.</p>
+        <p>No comprehensive cognitive architecture.</p>
+        <p>No personality or identity simulation.</p>
+        <p>No universal agent-framework integration.</p>
+        <p>The survey's eight-component system is a reference for comparison — not a build target.</p>
+        <p>No fixed state schema until OD-2 is decided.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="../assets/portal.js"></script>
+</body>
+</html>

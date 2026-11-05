@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About — Autognose</title>
+<meta name="description" content="What Autognose is, what it is not, how it is run, and how to engage.">
+<link rel="stylesheet" href="../assets/portal.css">
+</head>
+<body data-page="about" data-root="../">
+
+<header class="page-head">
+  <div class="wrap">
+    <p class="crumb rv">Autognose · About</p>
+    <h1 class="rv-l">About</h1>
+    <p class="lede rv d1">
+      Projects lose contributors to wrong assumptions faster than to bad code.
+      This page exists to prevent both.
+    </p>
+  </div>
+</header>
+
+<!-- ── Background ──────────────────────────────────────────── -->
+<section id="background" style="border-top:1px solid var(--hair-faint)">
+  <div class="wrap">
+    <p class="kicker rv"><span class="no">01</span> Project background</p>
+    <div class="two-col" style="margin-top:26px">
+      <div>
+        <h2 class="h-xl rv-l">What it is.</h2>
+        <p class="lede rv d1" style="margin-top:20px;font-size:18px">
+          Autognose (自知 — "knowing oneself") is a research project into
+          <em class="acc">self-aware knowledge layers</em> for retrieval-augmented systems
+          and agents.
+        </p>
+      </div>
+      <div>
+        <p class="body-dim rv d1" style="font-size:16px">
+          Retrieval systems answer. They rarely say how well-founded the answer is.
+          Autognose keeps what a system knows about its own knowledge: where a piece came from,
+          whether it was ever checked, whether it still holds, and how confident the system is
+          entitled to be. Its job is to decide, not to generate: given a question and what was
+          retrieved for it — answer, retrieve more, ask, or decline. A decision made honestly
+          is what we mean by self-aware.
+        </p>
+        <p class="body-dim rv d2" style="font-size:16px;margin-top:16px">
+          The project started in September 2026 with a survey of 40+ works on self-aware
+          knowledge systems, and a deliberately uncomfortable finding: the components exist in
+          separate systems, but no assembled system demonstrates them together.
+          That assembly is the hypothesis — registered as C-01, and treated as a hypothesis,
+          not a finding.
+        </p>
+      </div>
+    </div>
+
+    <div class="panel rv" style="margin-top:48px">
+      <h4>What it is not</h4>
+      <div class="panel-grid">
+        <p><strong style="color:var(--white)">Not a RAG framework.</strong> Keep your retriever; Autognose does not replace it and does not care which one you use.</p>
+        <p><strong style="color:var(--white)">Not a vector database.</strong> No index, no storage engine.</p>
+        <p><strong style="color:var(--white)">Not an LLM training project.</strong> No fine-tuning required.</p>
+        <p><strong style="color:var(--white)">Not an AGI claim.</strong> No consciousness, no sentience. Self-aware means a system can report the state of its own knowledge — nothing more.</p>
+        <p><strong style="color:var(--white)">Not usable yet.</strong> No code, no benchmark, no demo, no release. This site is not a preview of one.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Organization ────────────────────────────────────────── -->
+<section id="organization">
+  <div class="wrap">
+    <p class="kicker rv"><span class="no">02</span> Organization</p>
+    <div class="two-col" style="margin-top:26px">
+      <div>
+        <h2 class="h-xl rv-l">Who runs it.</h2>
+      </div>
+      <div>
+        <p class="body-dim rv d1" style="font-size:16px">
+          Autognose is developed under <strong style="color:var(--white)">Oasis AI Lab</strong>,
+          on GitHub, as open core under the MIT license (© 2026 CeaserZhao).
+        </p>
+        <p class="body-dim rv d2" style="font-size:16px;margin-top:16px">
+          The project is run on a strict protocol, written down in AGENT.md: a boundary report
+          before action, one minimal next step at a time, and any decision that belongs to the
+          team waits for the team. Documents carry status labels — proposed, open, recorded —
+          and the public documentation is written in English while internal decision records
+          remain in Chinese. That language split is itself a registered open question (OD-7).
+        </p>
+        <div style="margin-top:26px;display:flex;gap:12px;flex-wrap:wrap" class="rv d2">
+          <a class="btn ghost" href="https://github.com/Oasis-AI-Lab" target="_blank" rel="noopener">GitHub organization</a>
+          <a class="btn ghost" href="https://github.com/Oasis-AI-Lab/Autognose/blob/main/LICENSE" target="_blank" rel="noopener">MIT license</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Contributing ────────────────────────────────────────── -->
+<section id="contributing">
+  <div class="wrap">
+    <p class="kicker rv"><span class="no">03</span> Contributing</p>
+    <h2 class="h-xl rv-l" style="margin:22px 0 10px">A case,<br>not a patch.</h2>
+    <p class="body-dim rv d1" style="margin-bottom:40px">
+      Pull requests would be premature until the schema is fixed — a statement of sequence,
+      not a closed door. Here is what actually helps right now.
+    </p>
+    <div class="rows">
+      <div class="row-item rv"><span class="n">W·1</span>
+        <div><h3>Bring failure cases.</h3>
+          <p>If you have watched a retrieval system answer confidently where the evidence was thin,
+          or could not tell whether a passage was still true — open an issue with the case.
+          Failure cases are what we are shortest on.</p>
+          <a class="chip cy" style="margin-top:10px" href="https://github.com/Oasis-AI-Lab/Autognose/issues" target="_blank" rel="noopener">Open an issue →</a></div></div>
+      <div class="row-item rv"><span class="n">W·2</span>
+        <div><h3>Challenge the documents.</h3>
+          <p>The scope, the experiment plan, and the claim register are proposals awaiting review.
+          If a status label is wrong or a baseline is missing, that is a contribution.
+          Comment on the files or in issues.</p></div></div>
+      <div class="row-item rv"><span class="n">W·3</span>
+        <div><h3>Tell us if the wedge is wrong.</h3>
+          <p>The assumption that open-source developers who run retrieval stacks recognise this
+          problem comes from reading, not from talking to you. Prove it wrong early — that is
+          the cheapest possible failure.</p></div></div>
+      <div class="row-item rv"><span class="n">W·4</span>
+        <div><h3>Code — later, by design.</h3>
+          <p>The knowledge-state field set (OD-2) determines the public API. Writing code before
+          that decision would make the site's promises untrue. When the schema is decided,
+          the scaffold and the experiment plan are the entry points.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Contact ─────────────────────────────────────────────── -->
+<section id="contact">
+  <div class="wrap">
+    <p class="kicker rv"><span class="no">04</span> Contact</p>
+    <h2 class="h-xl rv-l" style="margin:22px 0 44px">One channel,<br>in public.</h2>
+    <div class="idx">
+      <a class="idx-row rv" href="https://github.com/Oasis-AI-Lab/Autognose/issues" target="_blank" rel="noopener">
+        <span class="rn">CT·01</span>
+        <span><h3>GitHub issues</h3><p>Everything starts there: cases, challenges, questions. Public by default.</p></span>
+        <span class="go">Open ↗</span>
+      </a>
+      <a class="idx-row rv d1" href="https://github.com/Oasis-AI-Lab" target="_blank" rel="noopener">
+        <span class="rn">CT·02</span>
+        <span><h3>Oasis AI Lab</h3><p>The organization behind the project.</p></span>
+        <span class="go">GitHub ↗</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<script src="../assets/portal.js"></script>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Development — Autognose</title>
+<meta name="description" content="Experiments, roadmap, and the changelog of the Autognose project. No completion percentages, no deadlines — both would be fabrications.">
+<link rel="stylesheet" href="../assets/portal.css">
+</head>
+<body data-page="development" data-root="../">
+
+<header class="page-head">
+  <div class="wrap">
+    <p class="crumb rv">Autognose · Development</p>
+    <h1 class="rv-l">Development</h1>
+    <p class="lede rv d1">
+      The experiment plan, the pre-launch roadmap, and the changelog.
+      This page contains no completion percentages and no deadlines — both would be
+      fabrications at this stage.
+    </p>
+  </div>
+</header>
+
+<!-- ── Experiments ─────────────────────────────────────────── -->
+<section id="experiments" style="border-top:1px solid var(--hair-faint)">
+  <div class="wrap">
+    <p class="kicker rv"><span class="no">01</span> Experiments</p>
+    <h2 class="h-xl rv-l" style="margin:22px 0 10px">An evaluation that<br>can fail honestly.</h2>
+    <p class="body-dim rv d1" style="margin-bottom:44px">
+      R0 builds the harness before any mechanism is compared: scenarios with ground truth
+      by construction, baselines that catch degenerate strategies, and pre-registered
+      expectations. R1 then asks whether any minimal mechanism changes behaviour at all.
+    </p>
+
+    <div class="two-col">
+      <div>
+        <h3 class="h-lg rv-l" style="margin-bottom:6px">R0 — Scenario families</h3>
+        <p class="body-dim rv d1" style="margin-bottom:22px">S4 and S5 are the control families:
+        without them, "abstain always" scores perfectly on S1–S3.</p>
+        <div class="tbl-scroll rv">
+          <table class="tbl">
+            <thead><tr><th>Fam.</th><th>Ground truth</th><th>Correct action</th></tr></thead>
+            <tbody>
+              <tr><td>S1 <span class="chip cy" style="margin-left:4px">focus</span></td><td>Answerable from k of n retrieved items</td><td>Answer — or retrieve more / abstain</td></tr>
+              <tr><td>S2 <span class="chip cy" style="margin-left:4px">focus</span></td><td>Two retrieved items conflict</td><td>Flag for review / ask</td></tr>
+              <tr><td>S3 <span class="chip cy" style="margin-left:4px">focus</span></td><td>Item superseded by a newer one</td><td>Flag / retrieve the newer item</td></tr>
+              <tr><td>S4</td><td>Single consistent current item</td><td>Answer — guards over-refusal</td></tr>
+              <tr><td>S5</td><td>Nothing in the corpus addresses it</td><td>Abstain — guards over-answering</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <h3 class="h-lg rv-l" style="margin-bottom:6px">R0 — Baselines B0–B4</h3>
+        <p class="body-dim rv d1" style="margin-bottom:22px">Implemented in the harness and reported
+        alongside every mechanism, in the same harness version.</p>
+        <div class="tbl-scroll rv d1">
+          <table class="tbl">
+            <thead><tr><th>Bl.</th><th>Behaviour</th><th>Controls for</th></tr></thead>
+            <tbody>
+              <tr><td>B0</td><td>Always answers</td><td>The cost of having no self-knowledge</td></tr>
+              <tr><td>B1</td><td>Always abstains</td><td>Trivial gaming of abstention metrics</td></tr>
+              <tr><td>B2</td><td>Acts on retrieval scores only</td><td>The naive-RAG null hypothesis</td></tr>
+              <tr><td>B3</td><td>Hand-written rules over metadata</td><td>"It's just engineering" — if rules match mechanisms, say so</td></tr>
+              <tr><td>B4</td><td>Calibrated score, no action vocabulary</td><td>Whether the action contract adds anything</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:52px">
+      <h3 class="h-lg rv-l" style="margin-bottom:6px">R1 — Five experiments</h3>
+      <p class="body-dim rv d1" style="margin-bottom:22px">Each with pre-registered hypotheses,
+      controlled variables, and explicit failure conditions. A mechanism that fails is a
+      reportable result, not a hidden one.</p>
+      <div class="rows">
+        <div class="row-item rv"><span class="n">E1</span><div><h3>Representation ablation</h3><p>Does an explicit state layer change assessment quality? Mechanism A / B / C against B2 / B3 on scenarios S1–S5.</p></div></div>
+        <div class="row-item rv"><span class="n">E2</span><div><h3>Representation swap</h3><p>Is persistence worth anything, or only the fields? Stateless vs persistent with the same field set.</p></div></div>
+        <div class="row-item rv"><span class="n">E3</span><div><h3>Downstream utility</h3><p>Does the assessment improve the external agent's decisions, versus a score-only policy?</p></div></div>
+        <div class="row-item rv"><span class="n">E4</span><div><h3>Validity under shift</h3><p>Do stated assessments still predict accuracy when the distribution shifts — paraphrase, harder gaps, mixed staleness?</p></div></div>
+        <div class="row-item rv"><span class="n">E5</span><div><h3>Cost accounting</h3><p>Retrievals, tokens, latency, storage writes per query — measured, not estimated. A mechanism whose cost exceeds the budget it saves is disqualified by its own principle.</p></div></div>
+      </div>
+    </div>
+
+    <div class="panel cy rv d1" style="margin-top:44px">
+      <h4>Anti-circularity controls — harness requirements</h4>
+      <div class="panel-grid">
+        <p>Generator and judge share no code path.</p>
+        <p>Every synthetic item carries a verifiable reason for its label.</p>
+        <p>LLM-generated labels are validated against a human-labelled holdout before the generator is trusted at all.</p>
+        <p>Every run produces a machine-readable results file; prose cites it and never replaces it.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Roadmap ─────────────────────────────────────────────── -->
+<section id="roadmap">
+  <div class="wrap">
+    <p class="kicker rv"><span class="no">02</span> Roadmap</p>
+    <h2 class="h-xl rv-l" style="margin:22px 0 44px">Six phases before<br>public launch.</h2>
+    <div class="timeline">
+      <div class="tl-progress"></div>
+      <div class="tl-item done rv"><p class="td">Phase 01 · delivered</p>
+        <h3>Project audit</h3>
+        <p>What is actually true today, with evidence: every finding references a real file or a command that was run.</p>
+        <span class="chip wt">PROJECT_AUDIT.md</span></div>
+      <div class="tl-item done rv"><p class="td">Phase 02 · delivered, pending team review</p>
+        <h3>Research foundation</h3>
+        <p>Vision, research agenda, literature landscape, technical paths — candidate documents, not decisions.</p>
+        <span class="chip wt">4 documents</span> <span class="chip cy">candidate status</span></div>
+      <div class="tl-item now rv"><p class="td">Phase 03 · planned</p>
+        <h3>Open-source governance</h3>
+        <p>License, governance model, community conventions. Blocked on the organizational relationship being clarified.</p>
+        <span class="chip">not started</span></div>
+      <div class="tl-item rv"><p class="td">Phase 04 · planned</p>
+        <h3>Collaboration infrastructure</h3>
+        <p>Issue templates, contribution paths, review process.</p>
+        <span class="chip">not started</span></div>
+      <div class="tl-item rv"><p class="td">Phase 05 · planned</p>
+        <h3>Contributor readiness</h3>
+        <p>The repository must be navigable by someone who has never met the team.</p>
+        <span class="chip">not started</span></div>
+      <div class="tl-item rv"><p class="td">Phase 06 · planned</p>
+        <h3>Public launch preparation</h3>
+        <p>The pitch-readiness gate: nothing is announced until the gate's criteria are met.</p>
+        <span class="chip">not started</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Changelog ───────────────────────────────────────────── -->
+<section id="changelog">
+  <div class="wrap">
+    <p class="kicker rv"><span class="no">03</span> Changelog</p>
+    <h2 class="h-xl rv-l" style="margin:22px 0 10px">From the git log.</h2>
+    <p class="body-dim rv d1" style="margin-bottom:38px">Every entry is a commit on the main branch.
+    Nothing here is projected.</p>
+    <div class="feed">
+      <div class="feed-item rv"><span class="fd">2026 · 11 · 05</span>
+        <div><h3>site: add visual draft for the new homepage redesign</h3><span class="sha">50bd0d3</span></div></div>
+      <div class="feed-item rv d1"><span class="fd">2026 · 10 · 23</span>
+        <div><h3>docs: publish v0.1 survey to pages at /report/v0.1/</h3><span class="sha">6d251a3</span></div></div>
+      <div class="feed-item rv d2"><span class="fd">2026 · 09 · 12</span>
+        <div><h3>docs: add boundary report and v0.1 scope and stack proposal</h3><span class="sha">17f8079</span></div></div>
+      <div class="feed-item rv d3"><span class="fd">2026 · 09 · 12</span>
+        <div><h3>chore: scaffold monorepo structure for the thick architecture</h3><span class="sha">c3fbec4</span></div></div>
+      <div class="feed-item rv d4"><span class="fd">2026 · 09 · 12</span>
+        <div><h3>ci: deploy site/ to GitHub Pages via Actions</h3><span class="sha">—</span></div></div>
+      <div class="feed-item rv d5"><span class="fd">2026 · 09 · 11</span>
+        <div><h3>Create AGENT.md · THINKING.md · initial commit</h3><span class="sha">—</span></div></div>
+    </div>
+  </div>
+</section>
+
+<script src="../assets/portal.js"></script>
+</body>
+</html>
